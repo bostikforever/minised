@@ -1,0 +1,29 @@
+				small-sed
+		(by Eric S. Raymond, <esr@snark.thyrsus.com>)
+
+This is a smaller, cheaper, faster SED utility.  Minix uses it.  GNU used
+to use it, until they built their own sed around an extended (some would
+say over-extended) regexp package.
+
+My original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
+Some Minix hacker ran them together into a single-file version, mnsed.c.
+
+The mnsed version is missing one feature in my 1.1 version; support of +. 
+Also, the multiple-file I/O is organized slightly differently.
+I give both versions here.
+
+READ.ME		-- This file
+BUGS		-- description of a known bug
+Makefile	-- how to build sed
+sed.h		-- declarations and structures
+sedcomp.c	-- sed pattern compilation
+sedexec.c	-- sed program execution
+mnsed.c		-- Minix sed, slightly hacked from my original
+ctrans		-- partial Pascal-to-C translation
+sedtest		-- a small sed test load
+sed.1		-- source for the man page
+
+For this archive release I have put the man page in man format.
+
+Surf to http://www.thyrsus.com/~esr/home.html for updates and related
+resources.
