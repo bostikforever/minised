@@ -1382,7 +1382,7 @@ register char	*p1;	    /* the source */
 FILE	    *fp;	    /* output stream to write to */
 {
 	p1--;
-	while(*p1++,p1<spend)
+	for (; *p1++; p1 < spend)
 		if (isprint(*p1))
 			putc(*p1, fp);	  /* pass it through */
 		else
