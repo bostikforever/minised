@@ -109,7 +109,7 @@ main(argc, argv)
 int	argc;
 char	*argv[];
 {
-	void compile(), resolve();
+	static void compile(void), resolve(void);
 
 	eargc	= argc;		/* set local copy of argument count */
 	eargv	= argv;		/* set local copy of argument list */
@@ -184,10 +184,11 @@ static char	cmdmask[] =
 	XCMD,	H+YCMD,	0,	H+BCMD,	0,	H,	0,	0,
 };
 
-static void compile()
+static void compile(void)
 /* precompile sed commands out of a file */
 {
-	char		ccode, *address();
+    char	ccode;
+    static char	*address(), *cmdcomp(char), *cmdline(char *);
 
 	for(;;)					/* main compilation loop */
 	{
@@ -265,18 +266,18 @@ static void compile()
 	}
 }
 
-static int cmdcomp(cchar)
+static int cmdcomp(char cchar)
 /* compile a single command */
-register char	cchar;		/* character name of command */
 {
-	char		*gettext(), *rhscomp(), *recomp(), *ycomp();
+	static char	*gettext(), *rhscomp(), *recomp(), *ycomp();
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
 	static char	*fname[WFILES];		/* w file name pointers */
 	static FILE	*fout[WFILES];		/* w file file ptrs */
 	static int	nwfiles	= 1;		/* count of open w files */
 	int		i;			/* indexing dummy used in w */
 	sedcmd		*sp1, *sp2;		/* temps for label searches */
-	label		*lpt, *search();	/* ditto, and the searcher */
+	label		*lpt;			/* ditto, and the searcher */
+	static label	 *search();
 	char		redelim;		/* current RE delimiter */
 
 	fout[0] = stdout;
@@ -610,9 +611,8 @@ char	redelim;			/* RE end-marker to look for */
 	}
 }
 
-static int cmdline(cbuf)		/* uses eflag, eargc, cmdf */
+static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 /* read next command from -e argument or command file */
-register char	*cbuf;
 {
 	register int	inc;	/* not char because must hold EOF */
 
@@ -737,9 +737,8 @@ register char	*txp;			/* where to put the text */
 	return(txp);
 }
 
-static label *search(ptr)			/* uses global lablst */
+static label *search(label *ptr)		/* uses global lablst */
 /* find the label matching *ptr, return NULL if none */
-register label	*ptr;
 {
 	register label	*rp;
 	for(rp = lablst; rp < ptr; rp++)
@@ -748,7 +747,7 @@ register label	*ptr;
 	return(NULL);
 }
 
-static void resolve()				/* uses global lablst */
+static void resolve(void)			/* uses global lablst */
 /* write label links into the compiled-command space */
 {
 	register label		*lptr;

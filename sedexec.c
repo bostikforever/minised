@@ -5,7 +5,7 @@ sedexec.c -- execute compiled form of stream editor commands
 may take a string argument (the name of a file to be used as text)  or
 the argument NULL which tells it to filter standard input. It executes
 the compiled commands in cmds[] on each line in turn.
-   The function command() does most of the work. Match() and advance()
+   The function command() does most of the work.  match() and advance()
 are used for matching text against precompiled regular expressions and
 dosub() does right-hand-side substitution.  Getline() does text input;
 readout() and memcmp() are output and string-comparison utilities.  
@@ -15,6 +15,7 @@ readout() and memcmp() are output and string-comparison utilities.
 
 #include <stdio.h>	/* {f}puts, {f}printf, getc/putc, f{re}open, fclose */
 #include <ctype.h>	/* for isprint(), isdigit(), toascii() macros */
+#include <string.h>	/* for memcmp(3) */
 #include "sed.h"	/* command type structures & miscellaneous constants */
 
 extern char	*strcpy();	/* used in dosub */
@@ -73,8 +74,9 @@ char *file;		/* name of text source file to be filtered */
 	register char		*p1, *p2;	/* dummy copy ptrs */
 	register sedcmd		*ipc;		/* ptr to current command */
 	char			*execp;		/* ptr to source */
-	char			*getline();	/* input-getting functions */
-	void			command(), readout();
+	static char		*getline();	/* input-getting functions */
+	static void		command(), readout(void);
+	static int		selected(sedcmd *);
 
 	if (file != NULL)	/* filter text from a named file */ 
 		if (freopen(file, "r", stdin) == NULL)
@@ -138,10 +140,10 @@ char *file;		/* name of text source file to be filtered */
 	}
 }
 
-static int selected(ipc)
+static int selected(sedcmd *ipc)
 /* is current command selected */
-sedcmd	*ipc;
 {
+	static int match(char *, int);
 	register char	*p1 = ipc->addr1;	/* point p1 at first address */
 	register char	*p2 = ipc->addr2;	/*   and p2 at second */
 	char		c;
@@ -204,10 +206,10 @@ sedcmd	*ipc;
 	}
 }
 
-static int match(expbuf, gf)	/* uses genbuf */
+static int match(char *expbuf, int gf)	/* uses genbuf */
 /* match RE at expbuf against linebuf; if gf set, copy linebuf from genbuf */
-char	*expbuf;
 {
+	static int advance(char *, char *);
 	register char	*p1, *p2, c;
 
 	if (gf)
@@ -403,7 +405,7 @@ static int substitute(ipc)
 /* perform s command */
 sedcmd	*ipc;				/* ptr to s command struct */
 {
-	void dosub();			/* for if we find a match */
+	static void dosub(char *);		/* for if we find a match */
 
 	if (match(ipc->u.lhs, 0))		/* if no match */
 		dosub(ipc->rhs);		/* perform it once */
@@ -425,7 +427,7 @@ char	*rhsbuf;	/* where to put the result */
 {
 	register char	*lp, *sp, *rp;
 	int		c;
-	char		*place();
+	static char	*place(char *, char *, char *);
 
 	/* copy linebuf to genbuf up to location  1 */
 	lp = linebuf; sp = genbuf;
@@ -523,6 +525,8 @@ static void command(ipc)
 /* execute compiled command pointed at by ipc */
 sedcmd	*ipc;
 {
+	static char *getline();
+	static void readout(void);
 	static int	didsub;			/* true if last s succeeded */
 	static char	holdsp[MAXHOLD];	/* the hold space */
 	static char	*hspend = holdsp;	/* hold space end pointer */
@@ -726,7 +730,8 @@ register char	*buf;		/* where to send the input */
 	if (gets(buf) != NULL)
 	{
 		lnum++;			/* note that we got another line */
-		while(*buf++);		/* find the end of the input */
+		while (*buf++)		/* find the end of the input */
+		    continue;
 		return(--buf);		/* return ptr to terminating null */ 
 	}
 	else
@@ -737,17 +742,7 @@ register char	*buf;		/* where to send the input */
 	}
 }
 
-static int memcmp(a, b, count)
-/* return TRUE if *a... == *b... for count chars, FALSE otherwise */
-register char	*a, *b;
-{
-	while(count--)			/* look at count characters */
-		if (*a++ != *b++)	/* if any are nonequal   */
-			return(FALSE);	/*    return FALSE for false */
-	return(TRUE);			/* compare succeeded */
-}
-
-static void readout()
+static void readout(void)
 /* write file indicated by r command to output */
 {
 	register int	t;	/* hold input char or EOF */

@@ -15,7 +15,7 @@ I give both versions here.
 The 1.3 version added a bug fix by Tom Oehser, and his `L' command.  Also
 this program is now distributed under GPL.
 
-READ.ME		-- This file
+README		-- This file
 BUGS		-- description of a known bug
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
@@ -25,12 +25,13 @@ mnsed.c		-- Minix sed, slightly hacked from my original
 ctrans		-- partial Pascal-to-C translation
 sedtest		-- a small sed test load
 sed.1		-- source for the man page
+sed.spec
 
 For this release I have put the man page in man format.
 
 Surf to
 
-   http://www.tuxedo.org/~esr
+   http://www.catb.org/~esr
 
 for updates of this software.  There is a sed FAQ kept at these
 locations (as of May 1998):
