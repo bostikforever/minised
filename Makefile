@@ -20,7 +20,7 @@ clean:
 	rm -f sed sedcomp.o sedexec.o mnsed
 
 sed-$(VERS).tar.gz: $(SOURCES) sed.1
-	@ls $(SOURCES) sed.1 | sed s:^:sed-$(VERS)/: >MANIFEST
+	@ls $(SOURCES) sed.1 | /bin/sed s:^:sed-$(VERS)/: >MANIFEST
 	@(cd ..; ln -s sed sed-$(VERS))
 	(cd ..; tar -czvf sed/sed-$(VERS).tar.gz `cat sed/MANIFEST`)
 	@(cd ..; rm sed-$(VERS))
