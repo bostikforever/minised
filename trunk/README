@@ -9,7 +9,7 @@ My original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
 Some Minix hacker ran them together into a single-file version, mnsed.c.
 
 My 1.2 version (9 Oct 1996) add mnsed's support for detecting
-truncatted hold spaces.  The mnsed version is missing one feature in
+truncated hold spaces.  The mnsed version is missing one feature in
 my 1.2 version; support of +.  Also, the multiple-file I/O is
 organized slightly differently.  I give both versions here.
 
