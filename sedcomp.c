@@ -272,13 +272,14 @@ register char	cchar;		/* character name of command */
 	char		*gettext(), *rhscomp(), *recomp(), *ycomp();
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
 	static char	*fname[WFILES];		/* w file name pointers */
-	static FILE	*fout[WFILES]={stdout};	/* w file file ptrs */
+	static FILE	*fout[WFILES];		/* w file file ptrs */
 	static int	nwfiles	= 1;		/* count of open w files */
 	int		i;			/* indexing dummy used in w */
 	sedcmd		*sp1, *sp2;		/* temps for label searches */
 	label		*lpt, *search();	/* ditto, and the searcher */
 	char		redelim;		/* current RE delimiter */
 
+	fout[0] = stdout;
 	switch(cchar)
 	{
 	case '{':	/* start command group */
@@ -523,6 +524,8 @@ char	redelim;			/* RE end-marker to look for */
 				c = '\n';
 			else if (c == 't')		/* match a tab */
 				c = '\t';
+			else if (c == 'r')		/* match a return */
+				c = '\r';
 			else
 				goto defchar;		/* else match \c */
 
@@ -582,6 +585,8 @@ char	redelim;			/* RE end-marker to look for */
 						c = '\n';
 					else if (c == 't')
 						c = '\t';
+					else if (c == 'r')
+						c = '\r';
 
 				/* enter (possibly translated) char in set */
 				ep[c >> 3] |= bits[c & 7];
@@ -737,7 +742,7 @@ register label	*ptr;
 {
 	register label	*rp;
 	for(rp = lablst; rp < ptr; rp++)
-		if (strcmp(rp->name, ptr->name) == 0)
+		if ((rp->name != NULL) && (strcmp(rp->name, ptr->name) == 0))
 			return(rp);
 	return(NULL);
 }
@@ -772,7 +777,8 @@ static char *ycomp(ep, delim)
 register char	*ep;		/* where to compile to */
 char		delim;		/* end delimiter to look for */
 {
-	register char	c, *tp, *sp;
+	register char	*tp, *sp;
+	register int c;
 
 	/* scan the 'from' section for invalid chars */
 	for(sp = tp = cp; *tp != delim; tp++)

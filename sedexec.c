@@ -35,7 +35,7 @@ extern char	bits[];		/* the bits table */
 /***** end of imported stuff *****/
 
 #define MAXHOLD		MAXBUF	/* size of the hold space */
-#define GENSIZ		71	/* maximum genbuf size */
+#define GENSIZ		MAXBUF	/* maximum genbuf size */
 
 #define TRUE		1
 #define FALSE		0
@@ -481,18 +481,30 @@ FILE		*fp;		/* output stream to write to */
 			putc(*p1, fp);		/* pass it through */
 		else
 		{
-			putc('\134', fp);		/* emit a backslash */
+			putc('\\', fp);		/* emit a backslash */
 			switch(*p1)
 			{
-			case '\10':	putc('b', fp); break;	/* BS */
-			case '\09':	putc('t', fp); break;	/* TAB */
-			case '\12':	putc('n', fp); break;	/* NL */
-			case '\15':	putc('r', fp); break;	/* CR */
-			case '\33':	putc('e', fp); break;	/* ESC */
+			case '\b':	putc('b', fp); break;	/* BS */
+			case '\t':	putc('t', fp); break;	/* TAB */
+			case '\n':	putc('n', fp); break;	/* NL */
+			case '\r':	putc('r', fp); break;	/* CR */
+			case '\033':	putc('e', fp); break;	/* ESC */
 			default:	fprintf(fp, "%02x", *p1 & 0xFF);
 			}
 		}
 	putc('\n', fp);
+}
+
+static void truncated(h) int h;
+{
+	static long last = 0L;
+
+	if (lnum == last) return;
+	last= lnum;
+
+	fprintf(stderr, "sed: ");
+	fprintf(stderr, h ? "hold space" : "line %D", lnum);
+	fprintf(stderr, " truncated to %d characters\n", MAXBUF);
 }
 
 static void command(ipc)
@@ -550,9 +562,15 @@ sedcmd	*ipc;
 	case CGCMD:		/* append hold space to pattern space */
 		*spend++ = '\n';
 		p1 = spend;	p2 = holdsp;
-		while(*p1++ = *p2++)
-			if (p1 >= linebuf + MAXBUF)
-				break;
+		do {
+			if (p1 > linebuf + MAXBUF) {
+				truncated();
+				p1[-1] = 0;
+  				break;
+			}
+		} while
+		    (*p1++ = *p2++);
+
 		spend = p1-1;
 		break;
 
@@ -564,9 +582,15 @@ sedcmd	*ipc;
 	case CHCMD:		/* append pattern space to hold space */
 		*hspend++ = '\n';
 		p1 = hspend;	p2 = linebuf;
-		while(*p1++ = *p2++)
-			if (p1 >= holdsp + MAXBUF)
-				break;
+		do {
+			if (p1 > holdsp + MAXBUF) {
+				truncated();
+				p1[-1] = 0;
+  				break;
+			}
+		} while
+		    (*p1++ = *p2++);
+
 		hspend = p1-1;
 		break;
 
@@ -711,7 +735,6 @@ register char	*a, *b;
 static void readout()
 /* write file indicated by r command to output */
 {
-	register char	*p1;	/* character-fetching dummy */
 	register int	t;	/* hold input char or EOF */
 	FILE		*fi;	/* ptr to file to be read */
 
