@@ -2,9 +2,6 @@
 
 VERS=$(shell /bin/sed <sed.spec -n -e '/Version: \(.*\)/s//\1/p')
 
-CFLAGS=-g
-LFLAGS=-lg
-
 sed: sedcomp.o sedexec.o
 	cc $(LFLAGS) sedcomp.o sedexec.o -o sed
 
