@@ -476,7 +476,7 @@ register char	*p1;		/* the source */
 FILE		*fp;		/* output stream to write to */
 {
 	p1--;
-	while(*p1++)
+	for (; *p1++; p1<spend)
 		if (isprint(*p1))
 			putc(*p1, fp);		/* pass it through */
 		else
@@ -492,6 +492,18 @@ FILE		*fp;		/* output stream to write to */
 			default:	fprintf(fp, "%02x", *p1 & 0xFF);
 			}
 		}
+	putc('\n', fp);
+}
+
+static void dumpto(p1, fp)
+/* write a hex dump expansion of *p1... to fp */
+register char	*p1;    /* source */
+FILE	*fp;		/* output */
+{
+	p1--;
+	while(*p1++,p1<spend)
+		fprintf(fp, "%02x", *p1 & 0xFF);
+	fprintf(fp, "%02x", '\n' & 0xFF);
 	putc('\n', fp);
 }
 
@@ -604,6 +616,9 @@ sedcmd	*ipc;
 
 	case LCMD:		/* list text */
 		listto(linebuf, (ipc->fout != NULL)?ipc->fout:stdout); break;
+
+	case CLCMD:	      /* dump text */
+		dumpto(linebuf, (ipc->fout != NULL)?ipc->fout:stdout); break;
 
 	case NCMD:	/* read next line into pattern space */
 		if (!nflag)

@@ -175,7 +175,7 @@ static char	cmdmask[] =
 {
 	0,	0,	H,	0,	0,	H+EQCMD,0,	0,
 	0,	0,	0,	0,	H+CDCMD,0,	0,	CGCMD,
-	CHCMD,	0,	0,	0,	0,	0,	CNCMD,	0,
+	CHCMD,	0,	0,	0,	H+CLCMD,0,	CNCMD,	0,
 	CPCMD,	0,	0,	0,	H+CTCMD,0,	0,	H+CWCMD,
 	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	H+ACMD,	H+BCMD,	H+CCMD,	DCMD,	0,	0,	GCMD,
@@ -387,10 +387,11 @@ register char	cchar;		/* character name of command */
 		}
 
 	case 'l':	/* list pattern space */
+	case 'L':	/* dump pattern space */
 		if (*cp == 'w')
 			cp++;		/* and execute a w command! */
 		else
-			break;		/* s or l is done */
+			break;		/* s or L or l is done */
 
 	case 'w':	/* write-pattern-space command */
 	case 'W':	/* write-first-line command */
