@@ -26,6 +26,20 @@ ctrans		-- partial Pascal-to-C translation
 sedtest		-- a small sed test load
 sed.1		-- source for the man page
 
-For this archive release I have put the man page in man format.
+For this release I have put the man page in man format.
 
-Surf to http://www.tuxedo.org/~esr for updates and related resources.
+Surf to
+
+   http://www.tuxedo.org/~esr
+
+for updates of this software.  There is a sed FAQ kept at these
+locations (as of May 1998):
+
+   http://www.dbnet.ece.ntua.gr/~george/sed/sedfaq.html
+   http://www.ptug.org/sed/sedfaq.htm
+
+There is a Web page of sed resources at:
+
+   http://www.wollery.demon.co.uk
+
+						
