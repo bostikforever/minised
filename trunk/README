@@ -8,6 +8,7 @@ say over-extended) regexp package.
 My original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
 Some Minix hacker ran them together into a single-file version, mnsed.c.
 
+My 1.2 version add mnsed's support fort detecting truncatted hold spaces.
 The mnsed version is missing one feature in my 1.2 version; support of +. 
 Also, the multiple-file I/O is organized slightly differently.
 I give both versions here.
@@ -34,13 +35,9 @@ Surf to
    http://www.catb.org/~esr
 
 for updates of this software.  There is a sed FAQ kept at these
-locations (as of May 1998):
+locations:
 
-   http://www.dbnet.ece.ntua.gr/~george/sed/sedfaq.html
-   http://www.ptug.org/sed/sedfaq.htm
+   http://www.dreamwvr.com/sed-info/sed-faq.html
 
-There is a Web page of sed resources at:
-
-   http://www.wollery.demon.co.uk
 
 						
