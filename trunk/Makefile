@@ -1,6 +1,6 @@
 # Makefile for the MINIX sed utility
 
-VERSION=1.3
+VERS=$(shell /bin/sed <sed.spec -n -e '/Version: \(.*\)/s//\1/p')
 
 CFLAGS=-g
 LFLAGS=-lg
@@ -14,14 +14,16 @@ mnsed: mnsed.c
 sedcomp.o: sedcomp.c sed.h
 sedexec.o: sedexec.c sed.h
 
-FILES = READ.ME BUGS Makefile sed.h sedcomp.c sedexec.c mnsed.c ctrans sedtest sed.1 sed.lsm
-
-sed-$(VERSION).tar: $(FILES)
-	tar -cvf sed-$(VERSION).tar $(FILES)
-
-sed-$(VERSION).tar.gz: sed-$(VERSION).tar
-	gzip sed-$(VERSION).tar
+SOURCES = README BUGS Makefile sed.h sedcomp.c sedexec.c mnsed.c ctrans sedtest sed.1 sed.spec
 
 clean:
 	rm -f sed sedcomp.o sedexec.o mnsed
+
+sed-$(VERS).tar.gz: $(SOURCES) sed.1
+	@ls $(SOURCES) sed.1 | sed s:^:sed-$(VERS)/: >MANIFEST
+	@(cd ..; ln -s sed sed-$(VERS))
+	(cd ..; tar -czvf sed/sed-$(VERS).tar.gz `cat sed/MANIFEST`)
+	@(cd ..; rm sed-$(VERS))
+
+dist: sed-$(VERS).tar.gz
 
