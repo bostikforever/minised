@@ -102,8 +102,10 @@ char *file;		/* name of text source file to be filtered */
 		{
 			/* all no-address commands are selected */
 			if (ipc->addr1)
-				if (selected(ipc) == TRUE)
+				if (selected(ipc) == FALSE) {
+					ipc++;	/* not selected, next cmd */
 					continue;
+				}
 	doit:
 			command(ipc);	/* execute the command pointed at */
 
@@ -729,15 +731,22 @@ register char	*buf;		/* where to send the input */
 {
 	if (gets(buf) != NULL)
 	{
+		int c;
 		lnum++;			/* note that we got another line */
 		while (*buf++)		/* find the end of the input */
 		    continue;
+
+		if ((c = fgetc(stdin)) != EOF)
+			ungetc (c, stdin);
+		else {
+		  if (eargc == 0)		/* if no more args */
+			lastline = TRUE;	/*    set a flag */
+		}
+
 		return(--buf);		/* return ptr to terminating null */ 
 	}
 	else
 	{
-		if (eargc == 0)			/* if no more args */
-			lastline = TRUE;	/*    set a flag */
 		return(BAD);
 	}
 }
