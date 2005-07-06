@@ -100,12 +100,14 @@ char *file;		/* name of text source file to be filtered */
 		/* loop through compiled commands, executing them */
 		for(ipc = cmds; ipc->command; )
 		{
-			/* all no-address commands are selected */
-			if (ipc->addr1)
-				if (selected(ipc) == FALSE) {
+			/* address command to select? - If not address
+			   but allbut then invert, that is skip, the commmand */
+			if (ipc->addr1 || ipc->flags.allbut) {
+				if (!ipc->addr1 || !selected(ipc)) {
 					ipc++;	/* not selected, next cmd */
 					continue;
 				}
+			}
 	doit:
 			command(ipc);	/* execute the command pointed at */
 
@@ -149,21 +151,17 @@ static int selected(sedcmd *ipc)
 	register char	*p2 = ipc->addr2;	/*   and p2 at second */
 	char		c;
 
-	int selected = TRUE;
+	int selected = FALSE;
 
 	if (ipc->flags.inrange)
 	{
+		selected = TRUE;
 		if (*p2 == CEND)
-			p1 = NULL;
+			;
 		else if (*p2 == CLNUM)
 		{
 			c = p2[1];
-			if (lnum > linenum[c])
-			{
-				ipc->flags.inrange = FALSE;
-				selected = 0;
-			}
-			else if (lnum == linenum[c])
+			if (lnum >= linenum[c])
 				ipc->flags.inrange = FALSE;
 		}
 		else if (match(p2, 0))
@@ -171,29 +169,23 @@ static int selected(sedcmd *ipc)
 	}
 	else if (*p1 == CEND)
 	{
-		if (!lastline)
-		{
-			selected = FALSE;
-		}
+		if (lastline)
+			selected = TRUE;
 	}
 	else if (*p1 == CLNUM)
 	{
 		c = p1[1];
-		if (lnum != linenum[c])
-		{
-			selected = FALSE;
+		if (lnum == linenum[c]) {
+			selected = TRUE;
+			if (p2)
+				ipc->flags.inrange = TRUE;
 		}
-		if (p2)
-			ipc->flags.inrange = TRUE;
 	}
 	else if (match(p1, 0))
 	{
+		selected = TRUE;
 		if (p2)
 			ipc->flags.inrange = TRUE;
-	}
-	else
-	{
-		selected = FALSE;
 	}
 	return ipc->flags.allbut ? !selected : selected;
 }

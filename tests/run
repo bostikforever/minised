@@ -13,15 +13,21 @@ if [ -z "$1" ]; then
 fi
 
 tmp=`mktemp`
+errors=0
 
 for x in *.sed ; do
 	x=${x/.sed/}
 	echo -n "Running test $x ..."
 	$1 -f $x.sed $x.in > $tmp
 	if ! cmp $tmp $x.out 2>&1 >/dev/null ; then
-		echo " Failed."
+		echo " Failed !!!"
 		[ $verbose -eq 1 ] && diff -u $x.out $tmp
+		: $((errors++))
 	else
-		echo " Passed."
+		echo " Passed"
 	fi
 done
+
+if [ $errors -ne 0 ]; then
+	echo -e "\n\t$errors error(s) total!\n"
+fi
