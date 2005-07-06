@@ -24,3 +24,6 @@ sed-$(VERS).tar.gz: $(SOURCES) sed.1
 
 dist: sed-$(VERS).tar.gz
 
+check: sed
+	cd tests; ./run ../sed
+
