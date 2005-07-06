@@ -1,0 +1,27 @@
+#!/bin/bash
+
+verbose=0
+
+if [ "$1" = -verbose ]; then
+	verbose=1
+	shift
+fi
+
+if [ -z "$1" ]; then
+	echo "You need to specify a sed."
+	exit
+fi
+
+tmp=`mktemp`
+
+for x in *.sed ; do
+	x=${x/.sed/}
+	echo -n "Running test $x ..."
+	$1 -f $x.sed $x.in > $tmp
+	if ! cmp $tmp $x.out 2>&1 >/dev/null ; then
+		echo " Failed."
+		[ $verbose -eq 1 ] && diff -u $x.out $tmp
+	else
+		echo " Passed."
+	fi
+done
