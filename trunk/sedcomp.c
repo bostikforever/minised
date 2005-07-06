@@ -184,11 +184,14 @@ static char	cmdmask[] =
 	XCMD,	H+YCMD,	0,	H+BCMD,	0,	H,	0,	0,
 };
 
+static char *address();
+static int cmdcomp(char);
+static int cmdline(char *);
+
 static void compile(void)
 /* precompile sed commands out of a file */
 {
     char	ccode;
-    static char	*address(), *cmdcomp(char), *cmdline(char *);
 
 	for(;;)					/* main compilation loop */
 	{
