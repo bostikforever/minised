@@ -1,6 +1,6 @@
 # Makefile for the MINIX sed utility
 
-VERS=$(shell sed <sed.spec -n -e '/Version: \(.*\)/s//\1/p')
+VERS=1.4
 
 sed: sedcomp.o sedexec.o
 	$(CC) $(LFLAGS) sedcomp.o sedexec.o -o sed
