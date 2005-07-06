@@ -1,6 +1,6 @@
 				small-sed
 		(by Eric S. Raymond, <esr@snark.thyrsus.com>
-		 and Rene Rebe <rene@exactcode.de>
+		 and Rene Rebe <rene@exactcode.de>)
 
 This is a smaller, cheaper, faster SED utility.  Minix uses it.  GNU used
 to use it, until they built their own sed around an extended (some would
@@ -24,7 +24,7 @@ sedcomp.c	-- sed pattern compilation
 sedexec.c	-- sed program execution
 ctrans		-- partial Pascal-to-C translation
 sed.1		-- source for the man page
-sedtest		-- a small sed test load
+tests		-- a small set of sed tests
 
 For this release I have put the man page in man format.
 
