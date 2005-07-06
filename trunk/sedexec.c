@@ -129,8 +129,7 @@ char *file;		/* name of text source file to be filtered */
 		/* here's where the transformed line is output */
 		if (!nflag && !delete)
 		{
-			for(p1 = linebuf; p1 < spend; p1++)
-				putc(*p1, stdout);
+			fwrite(linebuf, spend - linebuf, 1, stdout);
 			putc('\n', stdout);
 		}
 
