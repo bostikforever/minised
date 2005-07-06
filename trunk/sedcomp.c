@@ -195,17 +195,15 @@ static void compile(void)
 
 	for(;;)					/* main compilation loop */
 	{
-		if (*cp != ';')			/* get a new command line */
+		if (*cp == ';')			/* ; separates cmds */
+			cp++;
+		else				/* get a new command line */
 			if (cmdline(cp = linebuf) < 0)
 				break;
 		SKIPWS(cp);
+
 		if (*cp=='\0' || *cp=='#')	/* a comment */
 			continue;
-		if (*cp == ';')			/* ; separates cmds */
-		{
-			cp++;
-			continue;
-		}
 
 		/* compile first address */
 		if (fp > poolend)
@@ -262,9 +260,9 @@ static void compile(void)
 
 		SKIPWS(cp);			/* look for trailing stuff */
 		if (*cp != '\0')
-			if (*++cp == ';')
+			if (*cp == ';')
 				continue;
-			else if (cp[-1] != '#')
+			else if (*cp != '#')
 				ABORT(TRAIL);
 	}
 }
