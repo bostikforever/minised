@@ -3,10 +3,10 @@
 VERS=$(shell sed <sed.spec -n -e '/Version: \(.*\)/s//\1/p')
 
 sed: sedcomp.o sedexec.o
-	cc $(LFLAGS) sedcomp.o sedexec.o -o sed
+	$(CC) $(LFLAGS) sedcomp.o sedexec.o -o sed
 
 mnsed: mnsed.c
-	cc $(LFLAGS) mnsed.c -o mnsed
+	$(CC) $(LFLAGS) mnsed.c -o mnsed
 
 sedcomp.o: sedcomp.c sed.h
 sedexec.o: sedexec.c sed.h
