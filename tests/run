@@ -1,9 +1,8 @@
 #!/bin/bash
 
-verbose=0
-
-if [ "$1" = -verbose ]; then
-	verbose=1
+verbose=1
+if [ "$1" = -v ]; then
+	verbose=0
 	shift
 fi
 
@@ -18,7 +17,7 @@ errors=0
 for x in *.sed ; do
 	x=${x/.sed/}
 	echo -n "Running test $x ..."
-	$1 -f $x.sed $x.in > $tmp
+	$1 -f $x.sed $x.in > $tmp 2>&1
 	if ! cmp $tmp $x.out 2>&1 >/dev/null ; then
 		echo " Failed !!!"
 		[ $verbose -eq 1 ] && diff -u $x.out $tmp
