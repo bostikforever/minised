@@ -1,8 +1,14 @@
 #!/bin/bash
 
 verbose=1
+time=0
 if [ "$1" = -v ]; then
 	verbose=0
+	shift
+fi
+
+if [ "$1" = -t ]; then
+        time=1
 	shift
 fi
 
@@ -29,4 +35,14 @@ done
 
 if [ $errors -ne 0 ]; then
 	echo -e "\n\t$errors error(s) total!\n"
+elif [ $time -ne 0 ]; then
+	echo "Timing:"
+	time for x in *.sed ; do
+		x=${x/.sed/}
+		echo -n . >&2
+		$1 -f $x.sed $x.in > $tmp
+	done
 fi
+
+rm -f $tmp
+

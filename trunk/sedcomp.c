@@ -191,18 +191,22 @@ static int cmdline(char *);
 static void compile(void)
 /* precompile sed commands out of a file */
 {
-    char	ccode;
+	char	ccode;
 
 	for(;;)					/* main compilation loop */
 	{
-		if (*cp == ';')			/* ; separates cmds */
+		SKIPWS(cp);
+		if (*cp == ';') {
 			cp++;
-		else				/* get a new command line */
+			SKIPWS(cp);
+		}
+
+		if (*cp == '\0' || *cp == '#')	/* get a new command line */
 			if (cmdline(cp = linebuf) < 0)
 				break;
 		SKIPWS(cp);
 
-		if (*cp=='\0' || *cp=='#')	/* a comment */
+		if (*cp == '\0' || *cp == '#')	/* a comment */
 			continue;
 
 		/* compile first address */
@@ -243,9 +247,13 @@ static void compile(void)
 		if (fp > poolend) ABORT(TMTXT);
 
 		SKIPWS(cp);		/* discard whitespace after address */
-		IFEQ(cp, '!') cmdp->flags.allbut = 1;
 
-		SKIPWS(cp);		/* get cmd char, range-check it */
+		if (*cp == '!') {
+			cmdp->flags.allbut = 1;
+			cp++; SKIPWS(cp);
+		}
+
+		/* get cmd char, range-check it */
 		if ((*cp < LOWCMD) || (*cp > '~')
 			|| ((ccode = cmdmask[*cp - LOWCMD]) == 0))
 				ABORT(NSCAX);
@@ -260,9 +268,10 @@ static void compile(void)
 
 		SKIPWS(cp);			/* look for trailing stuff */
 		if (*cp != '\0')
-			if (*cp == ';')
+			if (*cp == ';') {
 				continue;
-			else if (*cp != '#')
+			}
+			else if (*cp != '#' && *cp != '}')
 				ABORT(TRAIL);
 	}
 }
