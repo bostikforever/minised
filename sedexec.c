@@ -93,7 +93,7 @@ char *file;		/* name of text source file to be filtered */
 	for(;;)
 	{
 		/* get next line to filter */
-		if ((execp = getline(linebuf)) == BAD)
+		if ((execp = getline(linebuf, MAXBUF+1)) == BAD)
 			return;
 		spend = execp;
 
@@ -613,7 +613,7 @@ sedcmd	*ipc;
 			puts(linebuf);	/* flush out the current line */
 		if (aptr > appends)
 			readout();	/* do pending a, r commands */
-		if ((execp = getline(linebuf)) == BAD)
+		if ((execp = getline(linebuf, MAXBUF+1)) == BAD)
 		{
 			pending = ipc;
 			delete = TRUE;
@@ -626,7 +626,8 @@ sedcmd	*ipc;
 		if (aptr > appends)
 			readout();
 		*spend++ = '\n';
-		if ((execp = getline(spend)) == BAD)
+		if ((execp = getline(spend,
+		                     linebuf + MAXBUF+1 - spend)) == BAD)
 		{
 			pending = ipc;
 			delete = TRUE;
@@ -707,16 +708,20 @@ sedcmd	*ipc;
 	}
 }
 
-static char *getline(buf)
+static char *getline(buf, max)
 /* get next line of text to be filtered */
 register char	*buf;		/* where to send the input */
+int max;			/* max chars to read */
 {
-	if (gets(buf) != NULL)
+	if (fgets(buf, max, stdin) != NULL)
 	{
 		int c;
+
 		lnum++;			/* note that we got another line */
-		while (*buf++)		/* find the end of the input */
-		    continue;
+		/* find the end of the input and overwrite a possible '\n' */
+		while (*buf != '\n' && *buf != 0)
+		    buf++;
+		*buf=0;
 
 		if ((c = fgetc(stdin)) != EOF)
 			ungetc (c, stdin);
@@ -725,7 +730,7 @@ register char	*buf;		/* where to send the input */
 			lastline = TRUE;	/*    set a flag */
 		}
 
-		return(--buf);		/* return ptr to terminating null */ 
+		return(buf);		/* return ptr to terminating null */ 
 	}
 	else
 	{
