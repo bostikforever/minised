@@ -1,5 +1,8 @@
 /* sed.h -- types and constants for the stream editor */
 
+#define TRUE            1
+#define FALSE           0
+
 /* data area sizes used by both modules */
 #define MAXBUF		4000	/* current line buffer size */
 #define MAXAPPENDS	20	/* maximum number of appends */
@@ -59,7 +62,6 @@ sedcmd;		/* use this name for declarations */
 
 #define BAD	((char *) -1)		/* guaranteed not a string ptr */
 
-
 /* address and regular expression compiled-form markers */
 #define STAR	1	/* marker for Kleene star */
 #define CCHR	2	/* non-newline character to be matched follows */
