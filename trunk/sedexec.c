@@ -18,8 +18,6 @@ readout() and memcmp() are output and string-comparison utilities.
 #include <string.h>	/* for memcmp(3) */
 #include "sed.h"	/* command type structures & miscellaneous constants */
 
-extern char	*strcpy();	/* used in dosub */
-
 /***** shared variables imported from the main ******/
 
 /* main data areas */
@@ -33,13 +31,12 @@ extern int	eargc;		/* scratch copy of argument count */
 extern sedcmd	*pending;	/* ptr to command waiting to be executed */
 extern char	bits[];		/* the bits table */
 
+extern int	last_line_used; /* last line address ($) used */
+
 /***** end of imported stuff *****/
 
 #define MAXHOLD		MAXBUF	/* size of the hold space */
 #define GENSIZ		MAXBUF	/* maximum genbuf size */
-
-#define TRUE		1
-#define FALSE		0
 
 static char LTLMSG[]	= "sed: line too long\n";
 
@@ -66,17 +63,27 @@ static int	delete;			/* delete command flag */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
 static char	*brastart[MAXTAGS];	/* tagged pattern end pointers */
 
-
-void execute(file)
-/* execute the compiled commands in cmds[] on a file */
-char *file;		/* name of text source file to be filtered */
+/* prototypes */
+static char *getline(char *buf, int max);
+static char *place(char* asp, char* al1, char* al2);
+static int advance(char* lp, char* ep);
+static int match(char *expbuf, int gf);
+static int selected(sedcmd *ipc);
+static int substitute(sedcmd *ipc);
+static void command(sedcmd *ipc);
+static void dosub(char *rhsbuf);
+static void dumpto(char *p1, FILE *fp);
+static void listto(char *p1, FILE *fp);
+static void readout(void);
+static void truncated(int h);
+
+/* execute the compiled commands in cmds[] on a file
+   file:  name of text source file to be filtered */
+void execute(char* file)
 {
 	register char		*p1, *p2;	/* dummy copy ptrs */
 	register sedcmd		*ipc;		/* ptr to current command */
 	char			*execp;		/* ptr to source */
-	static char		*getline();	/* input-getting functions */
-	static void		command(), readout(void);
-	static int		selected(sedcmd *);
 
 	if (file != NULL)	/* filter text from a named file */ 
 		if (freopen(file, "r", stdin) == NULL)
@@ -143,14 +150,12 @@ char *file;		/* name of text source file to be filtered */
 	}
 }
 
-static int selected(sedcmd *ipc)
 /* is current command selected */
+static int selected(sedcmd *ipc)
 {
-	static int match(char *, int);
 	register char	*p1 = ipc->addr1;	/* point p1 at first address */
 	register char	*p2 = ipc->addr2;	/*   and p2 at second */
 	char		c;
-
 	int selected = FALSE;
 
 	if (ipc->flags.inrange)
@@ -190,11 +195,10 @@ static int selected(sedcmd *ipc)
 	return ipc->flags.allbut ? !selected : selected;
 }
 
-static int match(char *expbuf, int gf)	/* uses genbuf */
 /* match RE at expbuf against linebuf; if gf set, copy linebuf from genbuf */
+static int match(char *expbuf, int gf)	/* uses genbuf */
 {
-	static int advance(char *, char *);
-	register char	*p1, *p2, c;
+	char *p1, *p2, c;
 
 	if (gf)
 	{
@@ -244,15 +248,15 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	return(FALSE);
 }
 
-static int advance(lp, ep)
-/* attempt to advance match pointer by one pattern element */
-register char	*lp;		/* source (linebuf) ptr */
-register char	*ep;		/* regular expression element ptr */
+/* attempt to advance match pointer by one pattern element
+   lp:	source (linebuf) ptr
+   ep:	regular expression element ptr */
+static int advance(char* lp, char* ep)
 {
-	register char	*curlp;		/* save ptr for closures */ 
-	char		c;		/* scratch character holder */
-	char		*bbeg;
-	int		ct;
+	char	*curlp;		/* save ptr for closures */ 
+	char	c;		/* scratch character holder */
+	char	*bbeg;
+	int	ct;
 
 	for (;;)
 		switch (*ep++)
@@ -385,12 +389,10 @@ register char	*ep;		/* regular expression element ptr */
 		}
 }
 
-static int substitute(ipc)
-/* perform s command */
-sedcmd	*ipc;				/* ptr to s command struct */
+/* perform s command
+   ipc:	ptr to s command struct */
+static int substitute(sedcmd *ipc)
 {
-	static void dosub(char *);		/* for if we find a match */
-
 	if (match(ipc->u.lhs, 0))		/* if no match */
 		dosub(ipc->rhs);		/* perform it once */
 	else
@@ -405,13 +407,12 @@ sedcmd	*ipc;				/* ptr to s command struct */
 	return(TRUE);				/* we succeeded */
 }
 
-static void dosub(rhsbuf)		/* uses linebuf, genbuf, spend */
-/* generate substituted right-hand side (of s command) */
-char	*rhsbuf;	/* where to put the result */
+/* generate substituted right-hand side (of s command)
+   rhsbuf:	where to put the result */
+static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 {
-	register char	*lp, *sp, *rp;
-	int		c;
-	static char	*place(char *, char *, char *);
+	char	*lp, *sp, *rp;
+	int	c;
 
 	/* copy linebuf to genbuf up to location  1 */
 	lp = linebuf; sp = genbuf;
@@ -443,9 +444,8 @@ char	*rhsbuf;	/* where to put the result */
 	spend = lp-1;
 }
 
-static char *place(asp, al1, al2)		/* uses genbuf */
 /* place chars at *al1...*(al1 - 1) at asp... in genbuf[] */
-register char	*asp, *al1, *al2;
+static char *place(char* asp, char* al1, char* al2)		/* uses genbuf */
 {
 	while (al1 < al2)
 	{
@@ -456,10 +456,10 @@ register char	*asp, *al1, *al2;
 	return(asp);
 }
 
-static void listto(p1, fp)
-/* write a hex dump expansion of *p1... to fp */
-register char	*p1;		/* the source */
-FILE		*fp;		/* output stream to write to */
+/* write a hex dump expansion of *p1... to fp
+   p1: the source
+   fp: output stream to write to */
+static void listto(char *p1, FILE *fp)
 {
 	p1--;
 	for (; *p1++; p1<spend)
@@ -481,10 +481,10 @@ FILE		*fp;		/* output stream to write to */
 	putc('\n', fp);
 }
 
-static void dumpto(p1, fp)
-/* write a hex dump expansion of *p1... to fp */
-register char	*p1;    /* source */
-FILE	*fp;		/* output */
+/* write a hex dump expansion of *p1... to fp
+   p1: source
+   fp: output */
+static void dumpto(char *p1, FILE *fp)
 {
 	p1--;
 	while(*p1++,p1<spend)
@@ -493,24 +493,21 @@ FILE	*fp;		/* output */
 	putc('\n', fp);
 }
 
-static void truncated(h) int h;
+static void truncated(int h)
 {
 	static long last = 0L;
 
 	if (lnum == last) return;
-	last= lnum;
+	last = lnum;
 
 	fprintf(stderr, "sed: ");
 	fprintf(stderr, h ? "hold space" : "line %D", lnum);
 	fprintf(stderr, " truncated to %d characters\n", MAXBUF);
 }
 
-static void command(ipc)
 /* execute compiled command pointed at by ipc */
-sedcmd	*ipc;
+static void command(sedcmd *ipc)
 {
-	static char *getline();
-	static void readout(void);
 	static int	didsub;			/* true if last s succeeded */
 	static char	holdsp[MAXHOLD];	/* the hold space */
 	static char	*hspend = holdsp;	/* hold space end pointer */
@@ -564,7 +561,7 @@ sedcmd	*ipc;
 		p1 = spend;	p2 = holdsp;
 		do {
 			if (p1 > linebuf + MAXBUF) {
-				truncated();
+				truncated(FALSE);
 				p1[-1] = 0;
   				break;
 			}
@@ -584,7 +581,7 @@ sedcmd	*ipc;
 		p1 = hspend;	p2 = linebuf;
 		do {
 			if (p1 > holdsp + MAXBUF) {
-				truncated();
+				truncated(TRUE);
 				p1[-1] = 0;
   				break;
 			}
@@ -708,10 +705,10 @@ sedcmd	*ipc;
 	}
 }
 
-static char *getline(buf, max)
-/* get next line of text to be filtered */
-register char	*buf;		/* where to send the input */
-int max;			/* max chars to read */
+/* get next line of text to be filtered
+   buf: where to send the input
+   max: max chars to read */
+static char *getline(char *buf, int max)
 {
 	if (fgets(buf, max, stdin) != NULL)
 	{
@@ -723,11 +720,14 @@ int max;			/* max chars to read */
 		    buf++;
 		*buf=0;
 
-		if ((c = fgetc(stdin)) != EOF)
+		/* detect last line - but only if the address was used in a command */
+		if  (last_line_used) {
+		  if ((c = fgetc(stdin)) != EOF)
 			ungetc (c, stdin);
-		else {
-		  if (eargc == 0)		/* if no more args */
-			lastline = TRUE;	/*    set a flag */
+		  else {
+			if (eargc == 0)		/* if no more args */
+				lastline = TRUE;	/* set a flag */
+		  }
 		}
 
 		return(buf);		/* return ptr to terminating null */ 
@@ -738,8 +738,8 @@ int max;			/* max chars to read */
 	}
 }
 
-static void readout(void)
 /* write file indicated by r command to output */
+static void readout(void)
 {
 	register int	t;	/* hold input char or EOF */
 	FILE		*fi;	/* ptr to file to be read */

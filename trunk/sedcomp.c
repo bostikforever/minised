@@ -17,10 +17,6 @@ resolves references at the end.
 #include <stdio.h>		/* uses getc, fprintf, fopen, fclose */
 #include "sed.h"		/* command type struct and name defines */
 
-/* imported functions */
-extern int strcmp();		/* test strings for equality */
-extern void execute();		/* execute compiled command */
-
 /***** public stuff ******/
 
 #define MAXCMDS		200	/* maximum number of compiled commands */
@@ -37,6 +33,15 @@ int	eargc;			/* scratch copy of argument count */
 sedcmd	*pending	= NULL;	/* next command to be executed */
 char	bits[]		= {1,2,4,8,16,32,64,128};
 
+int	last_line_used = 0;	/* last line address ($) was used */
+
+void die (const char* msg) {
+	fprintf(stderr, "sed: ");
+	fprintf(stderr, msg, linebuf);
+	fprintf(stderr, "\n");
+	exit(2);
+}
+
 /***** module common stuff *****/
 
 #define POOLSIZE	10000	/* size of string-pool space */
@@ -46,39 +51,37 @@ char	bits[]		= {1,2,4,8,16,32,64,128};
 #define	MAXLABS		50	/* max # of labels that can be handled */
 
 #define SKIPWS(pc)	while ((*pc==' ') || (*pc=='\t')) pc++
-#define ABORT(msg)	(fprintf(stderr, msg, linebuf), exit(2))
 #define IFEQ(x, v)	if (*x == v) x++ , /* do expression */
 
-/* error messages */
-static char	AGMSG[]	= "sed: garbled address %s\n";
-static char	CGMSG[]	= "sed: garbled command %s\n";
-static char	TMTXT[]	= "sed: too much text: %s\n";
-static char	AD1NG[]	= "sed: no addresses allowed for %s\n";
-static char	AD2NG[]	= "sed: only one address allowed for %s\n";
-static char	TMCDS[]	= "sed: too many commands, last was %s\n";
-static char	COCFI[]	= "sed: cannot open command-file %s\n";
-static char	UFLAG[]	= "sed: unknown flag %c\n";
-static char	COOFI[]	= "sed: cannot open %s\n";
-static char	CCOFI[]	= "sed: cannot create %s\n";
-static char	ULABL[]	= "sed: undefined label %s\n";
-static char	TMLBR[]	= "sed: too many {'s\n";
-static char	FRENL[]	= "sed: first RE must be non-null\n";
-static char	NSCAX[]	= "sed: no such command as %s\n";
-static char	TMRBR[]	= "sed: too many }'s\n";
-static char	DLABL[]	= "sed: duplicate label %s\n";
-static char	TMLAB[]	= "sed: too many labels: %s\n";
-static char	TMWFI[]	= "sed: too many w files\n";
-static char	REITL[]	= "sed: RE too long: %s\n";
-static char	TMLNR[]	= "sed: too many line numbers\n";
-static char	TRAIL[]	= "sed: command \"%s\" has trailing garbage\n";
+/* error messages */
+static char	AGMSG[]	= "garbled address %s";
+static char	CGMSG[]	= "garbled command %s";
+static char	TMTXT[]	= "too much text: %s";
+static char	AD1NG[]	= "no addresses allowed for %s";
+static char	AD2NG[]	= "only one address allowed for %s";
+static char	TMCDS[]	= "too many commands, last was %s";
+static char	COCFI[]	= "cannot open command-file %s";
+static char	UFLAG[]	= "unknown flag %c";
+static char	COOFI[]	= "cannot open %s";
+static char	CCOFI[]	= "cannot create %s";
+static char	ULABL[]	= "undefined label %s";
+static char	TMLBR[]	= "too many {'s";
+static char	FRENL[]	= "first RE must be non-null";
+static char	NSCAX[]	= "no such command as %s";
+static char	TMRBR[]	= "too many }'s";
+static char	DLABL[]	= "duplicate label %s";
+static char	TMLAB[]	= "too many labels: %s";
+static char	TMWFI[]	= "too many w files";
+static char	REITL[]	= "RE too long: %s";
+static char	TMLNR[]	= "too many line numbers";
+static char	TRAIL[]	= "command \"%s\" has trailing garbage";
  
 typedef struct			/* represent a command label */
 {
 	char		*name;		/* the label name */
 	sedcmd		*last;		/* it's on the label search list */  
 	sedcmd		*address;	/* pointer to the cmd it labels */
-}
-label;
+} label;
 
 /* label handling */
 static label	labels[MAXLABS];	/* here's the label table */
@@ -103,14 +106,21 @@ static char	**eargv;		/* scratch copy of argument list */
 static int	eflag;			/* -e option flag */
 static int	gflag;			/* -g option flag */
 
-
-main(argc, argv)
-/* main sequence of the stream editor */
-int	argc;
-char	*argv[];
-{
-	static void compile(void), resolve(void);
+/* prototypes */
+static char *address(char *expbuf);
+static char *gettext(char* txp);
+static char *recomp(char *expbuf, char redelim);
+static char *rhscomp(char* rhsp, char delim);
+static char *ycomp(char *ep, char delim);
+static int cmdcomp(char cchar);
+static int cmdline(char	*cbuf);
+static label *search(label *ptr);
+static void compile(void);
+static void resolve(void);
 
+/* main sequence of the stream editor */
+int main(int argc, char *argv[])
+{
 	eargc	= argc;		/* set local copy of argument count */
 	eargv	= argv;		/* set local copy of argument list */
 	cmdp->addr1 = pool;	/* 1st addr expand will be at pool start */
@@ -155,7 +165,7 @@ char	*argv[];
 	}
 
 	if (bdepth)	/* we have unbalanced squigglies */
-		ABORT(TMLBR);
+		die(TMLBR);
 
 	lablst->address = cmdp;	/* set up header of label linked list */
 	resolve();		/* resolve label table indirections */
@@ -166,7 +176,6 @@ char	*argv[];
 	exit(0);		/* everything was O.K. if we got here */
 }
 
-
 #define	H	0x80	/* 128 bit, on if there's really code for command */
 #define LOWCMD	56	/* = '8', lowest char indexed in cmdmask */ 
 
@@ -184,12 +193,8 @@ static char	cmdmask[] =
 	XCMD,	H+YCMD,	0,	H+BCMD,	0,	H,	0,	0,
 };
 
-static char *address();
-static int cmdcomp(char);
-static int cmdline(char *);
-
-static void compile(void)
 /* precompile sed commands out of a file */
+static void compile(void)
 {
 	char	ccode;
 
@@ -211,16 +216,16 @@ static void compile(void)
 
 		/* compile first address */
 		if (fp > poolend)
-			ABORT(TMTXT);
+			die(TMTXT);
 		else if ((fp = address(cmdp->addr1 = fp)) == BAD)
-			ABORT(AGMSG);
+			die(AGMSG);
 
 		if (fp == cmdp->addr1)		/* if empty RE was found */
 		{
 			if (lastre)		/* if there was previous RE */
 				cmdp->addr1 = lastre;	/* use it */
 			else
-				ABORT(FRENL);
+				die(FRENL);
 		}
 		else if (fp == NULL)		/* if fp was NULL */
 		{
@@ -233,9 +238,9 @@ static void compile(void)
 			if (*cp == ',' || *cp == ';')	/* there's 2nd addr */
 			{
 				cp++;
-				if (fp > poolend) ABORT(TMTXT);
+				if (fp > poolend) die(TMTXT);
 				fp = address(cmdp->addr2 = fp);
-				if (fp == BAD || fp == NULL) ABORT(AGMSG);
+				if (fp == BAD || fp == NULL) die(AGMSG);
 				if (fp == cmdp->addr2)
 					cmdp->addr2 = lastre;
 				else
@@ -244,7 +249,7 @@ static void compile(void)
 			else
 				cmdp->addr2 = NULL;	/* no 2nd address */
 		}
-		if (fp > poolend) ABORT(TMTXT);
+		if (fp > poolend) die(TMTXT);
 
 		SKIPWS(cp);		/* discard whitespace after address */
 
@@ -256,7 +261,7 @@ static void compile(void)
 		/* get cmd char, range-check it */
 		if ((*cp < LOWCMD) || (*cp > '~')
 			|| ((ccode = cmdmask[*cp - LOWCMD]) == 0))
-				ABORT(NSCAX);
+				die(NSCAX);
 
 		cmdp->command = ccode & ~H;	/* fill in command value */
 		if ((ccode & H) == 0)		/* if no compile-time code */
@@ -264,7 +269,7 @@ static void compile(void)
 		else if (cmdcomp(*cp++))	/* execute it; if ret = 1 */
 			continue;		/* skip next line read */
 
-		if (++cmdp >= cmds + MAXCMDS) ABORT(TMCDS);
+		if (++cmdp >= cmds + MAXCMDS) die(TMCDS);
 
 		SKIPWS(cp);			/* look for trailing stuff */
 		if (*cp != '\0')
@@ -272,14 +277,13 @@ static void compile(void)
 				continue;
 			}
 			else if (*cp != '#' && *cp != '}')
-				ABORT(TRAIL);
+				die(TRAIL);
 	}
 }
 
-static int cmdcomp(char cchar)
 /* compile a single command */
+static int cmdcomp(char cchar)
 {
-	static char	*gettext(), *rhscomp(), *recomp(), *ycomp();
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
 	static char	*fname[WFILES];		/* w file name pointers */
 	static FILE	*fout[WFILES];		/* w file file ptrs */
@@ -287,7 +291,6 @@ static int cmdcomp(char cchar)
 	int		i;			/* indexing dummy used in w */
 	sedcmd		*sp1, *sp2;		/* temps for label searches */
 	label		*lpt;			/* ditto, and the searcher */
-	static label	 *search();
 	char		redelim;		/* current RE delimiter */
 
 	fout[0] = stdout;
@@ -296,33 +299,33 @@ static int cmdcomp(char cchar)
 	case '{':	/* start command group */
 		cmdp->flags.allbut = !cmdp->flags.allbut;
 		cmpstk[bdepth++] = &(cmdp->u.link);
-		if (++cmdp >= cmds + MAXCMDS) ABORT(TMCDS);
+		if (++cmdp >= cmds + MAXCMDS) die(TMCDS);
 		if (*cp == '\0') *cp = ';';	/* get next cmd w/o lineread */
 		return(1);
 
 	case '}':	/* end command group */
-		if (cmdp->addr1) ABORT(AD1NG);	/* no addresses allowed */
-		if (--bdepth < 0) ABORT(TMRBR);	/* too many right braces */
+		if (cmdp->addr1) die(AD1NG);	/* no addresses allowed */
+		if (--bdepth < 0) die(TMRBR);	/* too many right braces */
 		*cmpstk[bdepth] = cmdp;		/* set the jump address */
 		return(1);
 
 	case '=':			/* print current source line number */
 	case 'q':			/* exit the stream editor */
-		if (cmdp->addr2) ABORT(AD2NG);
+		if (cmdp->addr2) die(AD2NG);
 		break;
 
 	case ':':	/* label declaration */
-		if (cmdp->addr1) ABORT(AD1NG);	/* no addresses allowed */
+		if (cmdp->addr1) die(AD1NG);	/* no addresses allowed */
 		fp = gettext(lab->name = fp);	/* get the label name */
 		if (lpt = search(lab))		/* does it have a double? */
 		{
-			if (lpt->address) ABORT(DLABL);	/* yes, abort */
+			if (lpt->address) die(DLABL);	/* yes, abort */
 		}
 		else	/* check that it doesn't overflow label table */
 		{
 			lab->last = NULL;
 			lpt = lab;
-			if (++lab >= labels + MAXLABS) ABORT(TMLAB);
+			if (++lab >= labels + MAXLABS) die(TMLAB);
 		}
 		lpt->address = cmdp;
 		return(1);
@@ -362,14 +365,14 @@ static int cmdcomp(char cchar)
 			lab->last = cmdp;	/* add the new label */
 			lab->address = NULL;	/* it's forward of here */
 			if (++lab >= labels + MAXLABS)	/* overflow if last */
-				ABORT(TMLAB);
+				die(TMLAB);
 		}
 		break;
 
 	case 'a':	/* append text */
 	case 'i':	/* insert text */
 	case 'r':	/* read file into stream */
-		if (cmdp->addr2) ABORT(AD2NG);
+		if (cmdp->addr2) die(AD2NG);
 	case 'c':	/* change text */
 		if ((*cp == '\\') && (*++cp == '\n')) cp++;
 		fp = gettext(cmdp->u.lhs = fp);
@@ -382,13 +385,13 @@ static int cmdcomp(char cchar)
 	case 's':	/* substitute regular expression */
 		redelim = *cp++;		/* get delimiter from 1st ch */
 		if ((fp = recomp(cmdp->u.lhs = fp, redelim)) == BAD)
-			ABORT(CGMSG);
+			die(CGMSG);
 		if (fp == cmdp->u.lhs)		/* if compiled RE zero len */ 
 			cmdp->u.lhs = lastre;	/*   use the previous one */
 		else				/* otherwise */
 			lastre = cmdp->u.lhs;	/*   save the one just found */
-		if ((cmdp->rhs = fp) > poolend) ABORT(TMTXT);
-		if ((fp = rhscomp(cmdp->rhs, redelim)) == BAD) ABORT(CGMSG);
+		if ((cmdp->rhs = fp) > poolend) die(TMTXT);
+		if ((fp = rhscomp(cmdp->rhs, redelim)) == BAD) die(CGMSG);
 		if (gflag) cmdp->flags.global++;
 		while (*cp == 'g' || *cp == 'p' || *cp == 'P')
 		{
@@ -406,7 +409,7 @@ static int cmdcomp(char cchar)
 
 	case 'w':	/* write-pattern-space command */
 	case 'W':	/* write-first-line command */
-		if (nwfiles >= WFILES) ABORT(TMWFI);
+		if (nwfiles >= WFILES) die(TMWFI);
 		fp=gettext(fname[nwfiles]=fp);	/* filename will be in pool */
 		for(i = nwfiles-1; i >= 0; i--)	/* match it in table */
 			if (strcmp(fname[nwfiles], fname[i]) == 0)
@@ -425,19 +428,19 @@ static int cmdcomp(char cchar)
 
 	case 'y':	/* transliterate text */
 		fp = ycomp(cmdp->u.lhs = fp, *cp++);	/* compile translit */
-		if (fp == BAD) ABORT(CGMSG);		/* fail on bad form */
-		if (fp > poolend) ABORT(TMTXT);		/* fail on overflow */
+		if (fp == BAD) die(CGMSG);		/* fail on bad form */
+		if (fp > poolend) die(TMTXT);		/* fail on overflow */
 		break;
 	}
 	return(0);	/* succeeded in interpreting one command */
 }
 
-static char *rhscomp(rhsp, delim)	/* uses bcount */
-/* generate replacement string for substitute command right hand side */
-register char	*rhsp;		/* place to compile expression to */
-register char	delim;		/* regular-expression end-mark to look for */
+/* generate replacement string for substitute command right hand side
+   rhsp:	place to compile expression to
+   delim:	regular-expression end-mark to look for */
+static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 {
-	register char	*p = cp;		/* strictly for speed */
+	register char	*p = cp;
 
 	for(;;)
 		if ((*rhsp = *p++) == '\\')	/* copy; if it's a \, */
@@ -459,10 +462,10 @@ register char	delim;		/* regular-expression end-mark to look for */
 			return(BAD);
 }
 
-static char *recomp(expbuf, redelim)	/* uses cp, bcount */
-/* compile a regular expression to internal form */ 
-char	*expbuf;			/* place to compile it to */
-char	redelim;			/* RE end-marker to look for */
+/* compile a regular expression to internal form
+   expbuf:	place to compile it to
+   redelim:	RE end-marker to look for */
+static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 {
 	register char	*ep = expbuf;	/* current-compiled-char pointer */
 	register char	*sp = cp;	/* source-character ptr */
@@ -574,17 +577,18 @@ char	redelim;			/* RE end-marker to look for */
 			if (*sp != redelim)	/* if we're not at end of RE */
 				goto defchar;	/*   match a literal $ */
 			*ep++ = CDOL;		/* insert end-symbol mark */
+			last_line_used = TRUE;
 			continue;
 
 		case '[':	/* begin character set pattern */
 			if (ep + 17 >= expbuf + RELIMIT)
-				ABORT(REITL);
+				die(REITL);
 			*ep++ = CCL;		/* insert class mark */
 			if (negclass = ((c = *sp++) == '^'))
 				c = *sp++;
 			svclass = sp;		/* save ptr to class start */
 			do {
-				if (c == '\0') ABORT(CGMSG);
+				if (c == '\0') die(CGMSG);
 
 				/* handle character ranges */
 				if (c == '-' && sp > svclass && *sp != ']')
@@ -621,8 +625,8 @@ char	redelim;			/* RE end-marker to look for */
 	}
 }
 
-static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 /* read next command from -e argument or command file */
+static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 {
 	register int	inc;	/* not char because must hold EOF */
 
@@ -691,9 +695,8 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 	return(*++cbuf = '\0', -1);	/* end-of-file, no more chars */
 }
 
-static char *address(expbuf)		/* uses cp, linenum */
 /* expand an address at *cp... into expbuf, return ptr at following char */
-register char	*expbuf;
+static char *address(char *expbuf)		/* uses cp, linenum */
 {
 	static int	numl = 0;	/* current ind in addr-number table */
 	register char	*rcp;		/* temp compile ptr for forwd look */
@@ -704,6 +707,7 @@ register char	*expbuf;
 		*expbuf++ = CEND;	/* write symbolic end address */
 		*expbuf++ = CEOF;	/* and the end-of-address mark (!) */
 		cp++;			/* go to next source character */
+		last_line_used = TRUE;
 		return(expbuf);		/* we're done */
 	}
 	if (*cp == '/')			/* start of regular-expression match */
@@ -719,7 +723,7 @@ register char	*expbuf;
 		*expbuf++ = numl;	/* and the address table index */
 		linenum[numl++] = lno;	/* and set the table entry */
 		if (numl >= MAXLINES)	/* oh-oh, address table overflow */
-			ABORT(TMLNR);	/*   abort with error message */
+			die(TMLNR);	/*   abort with error message */
 		*expbuf++ = CEOF;	/* write the end-of-address marker */
 		cp = rcp;		/* point compile past the address */ 
 		return(expbuf);		/* we're done */
@@ -728,11 +732,11 @@ register char	*expbuf;
 	return(NULL);		/* no legal address was found */
 }
 
-static char *gettext(txp)		/* uses global cp */
-/* accept multiline input from *cp..., discarding leading whitespace */ 
-register char	*txp;			/* where to put the text */
+/* accept multiline input from *cp..., discarding leading whitespace
+   txp: where to put the text */
+static char *gettext(char* txp)		/* uses global cp */
 {
-	register char	*p = cp;	/* this is for speed */
+	register char	*p = cp;
 
 	SKIPWS(p);			/* discard whitespace */
 	do {
@@ -742,13 +746,12 @@ register char	*txp;			/* where to put the text */
 			return(cp = --p, ++txp);
 		else if (*txp == '\n')		/* also SKIPWS after newline */
 			SKIPWS(p);
-	} while
-		(txp++);		/* keep going till we find that nul */
+	} while (txp++);		/* keep going till we find that nul */
 	return(txp);
 }
 
-static label *search(label *ptr)		/* uses global lablst */
 /* find the label matching *ptr, return NULL if none */
+static label *search(label *ptr)		/* uses global lablst */
 {
 	register label	*rp;
 	for(rp = lablst; rp < ptr; rp++)
@@ -757,8 +760,8 @@ static label *search(label *ptr)		/* uses global lablst */
 	return(NULL);
 }
 
-static void resolve(void)			/* uses global lablst */
 /* write label links into the compiled-command space */
+static void resolve(void)			/* uses global lablst */
 {
 	register label		*lptr;
 	register sedcmd		*rptr, *trptr;
@@ -782,13 +785,13 @@ static void resolve(void)			/* uses global lablst */
 		}
 }
 
-static char *ycomp(ep, delim)
-/* compile a y (transliterate) command */
-register char	*ep;		/* where to compile to */
-char		delim;		/* end delimiter to look for */
+/* compile a y (transliterate) command
+   ep:		where to compile to
+   delim:	end delimiter to look for */
+static char *ycomp(char *ep, char delim)
 {
-	register char	*tp, *sp;
-	register int c;
+	char *tp, *sp;
+	int c;
 
 	/* scan the 'from' section for invalid chars */
 	for(sp = tp = cp; *tp != delim; tp++)
