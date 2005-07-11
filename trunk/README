@@ -2,34 +2,40 @@
 		(by Eric S. Raymond, <esr@snark.thyrsus.com>
 		 and Rene Rebe <rene@exactcode.de>)
 
-This is a smaller, cheaper, faster SED utility.  Minix uses it.  GNU used
+This is a smaller, cheaper, faster SED utility. Minix uses it. GNU used
 to use it, until they built their own sed around an extended (some would
 say over-extended) regexp package and it is used for embedded tasks (e.g.
 by the T2 SDE (http://www.t2-project.org).
 
-My original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
-Some Minix hacker ran them together into a single-file version, mnsed.c.
+The original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
+Some Minix hacker ran them together into a single-file version, mnsed.c which
+is not supported and shipped these days; if changes are needed for Minux please
+send a patch to the normal source.
 
-My 1.2 version (9 Oct 1996) add mnsed's support for detecting
-truncated hold spaces.  The mnsed version is missing one feature in
-my 1.2 version; support of +.  Also, the multiple-file I/O is
-organized slightly differently.  I give both versions here.
+The 1.2 version (9 Oct 1996) add mnsed's support for detecting
+truncated hold spaces. The mnsed version is missing one feature in
+of the 1.2 version; support of +. Also, the multiple-file I/O is
+organized slightly differently.
 
-The 1.3 version added a bug fix by Tom Oehser, and his `L' command.  Also
+The 1.3 version added a bug fix by Tom Oehser, and the `L' command.  Also
 this program is now distributed under GPL.
+
+The 1.5 versions incooperated a lot of bug fixes by Rene Rebe as well as
+a real test suite. Also the function declaration and definition have been
+converted from the K&R C to ANSI C.
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
 sedexec.c	-- sed program execution
-ctrans		-- partial Pascal-to-C translation
 sed.1		-- source for the man page
-tests		-- a small set of sed tests
+tests/		-- a small set of sed tests
 
 For this release I have put the man page in man format.
 
 Surf to
 
+   http://www.exactcode.de/oss/minised/
    http://www.catb.org/~esr
 
 for updates of this software.  There is a sed FAQ kept at these
