@@ -75,6 +75,7 @@ static char	TMWFI[]	= "too many w files";
 static char	REITL[]	= "RE too long: %s";
 static char	TMLNR[]	= "too many line numbers";
 static char	TRAIL[]	= "command \"%s\" has trailing garbage";
+static char	RETER[] = "RE not terminated: %s";
  
 typedef struct			/* represent a command label */
 {
@@ -383,7 +384,10 @@ static int cmdcomp(char cchar)
 		break;
 
 	case 's':	/* substitute regular expression */
-		redelim = *cp++;		/* get delimiter from 1st ch */
+		if (*cp == 0) /* get delimiter from 1st ch */
+			die(RETER);
+		else
+			redelim = *cp++;
 		if ((fp = recomp(cmdp->u.lhs = fp, redelim)) == BAD)
 			die(CGMSG);
 		if (fp == cmdp->u.lhs)		/* if compiled RE zero len */ 
@@ -443,14 +447,27 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 	register char	*p = cp;
 
 	for(;;)
-		if ((*rhsp = *p++) == '\\')	/* copy; if it's a \, */
+		/* copy for the likely case it is not s.th. special */
+		if ((*rhsp = *p++) == '\\') /* back reference or escape  */
 		{
-			*rhsp = *p++;		/* copy escaped char */
-			/* check validity of pattern tag */
-			if (*rhsp > bcount + '0' && *rhsp <= '9')
-				return(BAD);
-			*rhsp++ |= 0x80;	/* mark the good ones */
-			continue;
+			if (*p > '0' && *p <= '9') /* back reference */
+			{
+				*rhsp = *p++;
+				/* check validity of pattern tag */
+				if (*rhsp > bcount + '0')
+					return(BAD);
+				*rhsp++ |= 0x80; /* mark the good ones */
+			}
+			else /* escape */
+			{
+				switch (*p) {
+					case 'n': *rhsp = '\n'; break;
+					case 'r': *rhsp = '\r'; break;
+					case 't': *rhsp = '\t'; break;
+					default: *rhsp = *p;
+				}
+				rhsp++; p++;
+			}
 		}
 		else if (*rhsp == delim)	/* found RE end, hooray... */
 		{
@@ -491,6 +508,8 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 	for (;;)
 	{
+		if (*sp == 0) /* no termination */
+			die (RETER);
 		if (ep >= expbuf + RELIMIT)	/* match is too large */
 			return(cp = sp, BAD);
 		if ((c = *sp++) == redelim)	/* found the end of the RE */
