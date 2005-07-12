@@ -1,4 +1,7 @@
-/* sed.h -- types and constants for the stream editor */
+/* sed.h -- types and constants for the stream editor
+   Copyright (C) 1995-2003 Eric S. Raymond
+   Copyright (C) 2004-2005 Rene Rebe
+*/
 
 #define TRUE            1
 #define FALSE           0
