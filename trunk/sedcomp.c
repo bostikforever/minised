@@ -1,4 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
+   Copyright (C) 1995-2003 Eric S. Raymond
+   Copyright (C) 2004-2005 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
@@ -11,8 +13,7 @@ In the special case that the command is a label the struct  will hold a ptr
 into the labels array labels[] during most of the compile,  until resolve()
 resolves references at the end.
    The operation of execute() is described in its source module. 
-
-==== Written for the GNU operating system by Eric S. Raymond ==== */
+*/
 
 #include <stdio.h>		/* uses getc, fprintf, fopen, fclose */
 #include "sed.h"		/* command type struct and name defines */
@@ -520,7 +521,9 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			*ep++ = CEOF;		/* write end-of-pattern mark */
 			return(ep);		/* return ptr to compiled RE */
 		}
-		if ((c != '*') && (c != '+'))	/* if we're a postfix op */
+		/* TODO: this should be done nicer */
+		if ((c != '*') &&
+		    (c != '\\' && *sp != '+'))	/* if we're a postfix op */
 			lastep = ep;		/*   get ready to match last */
 
 		switch (c)
@@ -560,6 +563,17 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				c = '\t';
 			else if (c == 'r')		/* match a return */
 				c = '\r';
+			else if (c== '+')/* 1 to n repeats of previous pattern */
+			{
+			  if (lastep == NULL)	/* if + not first on line */
+				goto defchar;	/*   match a literal + */
+			  if (*lastep == CKET)	/* can't iterate a tag */
+				return(cp = sp, BAD);
+			  pp = ep;		/* else save old ep */
+			  while (lastep < pp)	/* so we can blt the pattern */
+				*ep++ = *lastep++;
+			  *lastep |= STAR;	/* flag the copy */
+			}
 			else
 				goto defchar;		/* else match \c */
 
@@ -571,17 +585,6 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 		case '.':	/* match any char except newline */
 			*ep++ = CDOT;
-			continue;
-
-		case '+':	/* 1 to n repeats of previous pattern */
-			if (lastep == NULL)	/* if + not first on line */
-				goto defchar;	/*   match a literal + */
-			if (*lastep == CKET)	/* can't iterate a tag */
-				return(cp = sp, BAD);
-			pp = ep;		/* else save old ep */
-			while (lastep < pp)	/* so we can blt the pattern */
-				*ep++ = *lastep++;
-			*lastep |= STAR;	/* flag the copy */
 			continue;
 
 		case '*':	/* 0..n repeats of previous pattern */

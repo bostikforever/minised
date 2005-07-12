@@ -1,5 +1,6 @@
-/*
-sedexec.c -- execute compiled form of stream editor commands
+/* sedexec.c -- execute compiled form of stream editor commands
+   Copyright (C) 1995-2003 Eric S. Raymond
+   Copyright (C) 2004-2005 Rene Rebe
 
    The single entry point of this module is the function execute(). It
 may take a string argument (the name of a file to be used as text)  or
@@ -9,8 +10,6 @@ the compiled commands in cmds[] on each line in turn.
 are used for matching text against precompiled regular expressions and
 dosub() does right-hand-side substitution.  Getline() does text input;
 readout() and memcmp() are output and string-comparison utilities.  
-
-==== Written for the GNU operating system by Eric S. Raymond ==== 
 */
 
 #include <stdio.h>	/* {f}puts, {f}printf, getc/putc, f{re}open, fclose */
@@ -58,6 +57,8 @@ static char	*locs;
 static int	lastline;		/* do-line flag */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
+static int	needs_inc = 0;		/* needs inc after substitution */
+					/* utilization might work around BUG! */
 
 /* tagged-pattern tracking */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
@@ -206,10 +207,15 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 			return(FALSE);
 		p1 = linebuf; p2 = genbuf;
 		while (*p1++ = *p2++);
+		if (needs_inc) {
+			loc2++;
+			needs_inc=0;
+		}
 		locs = p1 = loc2;
 	}
 	else
 	{
+		needs_inc = 0;
 		p1 = linebuf;
 		locs = FALSE;
 	}
@@ -346,8 +352,10 @@ static int advance(char* lp, char* ep)
 			goto star;		/* match followers */
 
 		star:		/* the recursion part of a * or + match */
-			if (--lp == curlp)	/* 0 matches */
+			needs_inc = 1;
+			if (--lp == curlp) {	/* 0 matches */
 				continue;
+			}
 
 			if (*ep == CCHR)
 			{
@@ -399,11 +407,13 @@ static int substitute(sedcmd *ipc)
 		return(FALSE);			/* command fails */
 
 	if (ipc->flags.global)			/* if global flag enabled */
-		while(*loc2)			/* cycle through possibles */
-			if (match(ipc->u.lhs, 1))	/* found another */
+		do {				/* cycle through possibles */
+			if (match(ipc->u.lhs, 1)) {	/* found another */
 				dosub(ipc->rhs);	/* so substitute */
+			}
 			else				/* otherwise, */
 				break;			/* we're done */
+		} while (*loc2);
 	return(TRUE);				/* we succeeded */
 }
 
@@ -414,7 +424,7 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 	char	*lp, *sp, *rp;
 	int	c;
 
-	/* copy linebuf to genbuf up to location  1 */
+	/* copy linebuf to genbuf up to location 1 */
 	lp = linebuf; sp = genbuf;
 	while (lp < loc1) *sp++ = *lp++;
 
