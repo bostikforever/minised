@@ -398,11 +398,19 @@ static int cmdcomp(char cchar)
 		if ((cmdp->rhs = fp) > poolend) die(TMTXT);
 		if ((fp = rhscomp(cmdp->rhs, redelim)) == BAD) die(CGMSG);
 		if (gflag) cmdp->flags.global++;
-		while (*cp == 'g' || *cp == 'p' || *cp == 'P')
+		while (*cp == 'g' || *cp == 'p' || *cp == 'P' || isdigit(*cp))
 		{
 			IFEQ(cp, 'g') cmdp->flags.global++;
 			IFEQ(cp, 'p') cmdp->flags.print = 1;
 			IFEQ(cp, 'P') cmdp->flags.print = 2;
+			if(isdigit(*cp))
+			{
+				if (cmdp->nth)
+					break; /* no multiple n args */
+				
+				cmdp->nth = atoi(cp); /* check 0? */
+				while (isdigit(*cp)) cp++;
+			}
 		}
 
 	case 'l':	/* list pattern space */

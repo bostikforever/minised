@@ -57,8 +57,8 @@ static char	*locs;
 static int	lastline;		/* do-line flag */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
-static int	needs_inc = 0;		/* needs inc after substitution */
-					/* utilization might work around BUG! */
+static int	needs_advance;		/* needs inc after substitution */
+					/* ugly HACK - neds REWORK */
 
 /* tagged-pattern tracking */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
@@ -207,18 +207,17 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 			return(FALSE);
 		p1 = linebuf; p2 = genbuf;
 		while (*p1++ = *p2++);
-		if (needs_inc) {
+		if (needs_advance) {
 			loc2++;
-			needs_inc=0;
 		}
 		locs = p1 = loc2;
 	}
 	else
 	{
-		needs_inc = 0;
-		p1 = linebuf;
+		p1 = linebuf + needs_advance;
 		locs = FALSE;
 	}
+	needs_advance = 0;
 
 	p2 = expbuf;
 	if (*p2++)
@@ -352,7 +351,7 @@ static int advance(char* lp, char* ep)
 			goto star;		/* match followers */
 
 		star:		/* the recursion part of a * or + match */
-			needs_inc = 1;
+			needs_advance = 1;
 			if (--lp == curlp) {	/* 0 matches */
 				continue;
 			}
@@ -401,9 +400,20 @@ static int advance(char* lp, char* ep)
    ipc:	ptr to s command struct */
 static int substitute(sedcmd *ipc)
 {
-	if (match(ipc->u.lhs, 0))		/* if no match */
-		dosub(ipc->rhs);		/* perform it once */
-	else
+	int n = 1;
+	/* find a match */
+	/* the needs_advance code got a bit tricky - might needs a clean
+	   refactoring */
+	while (match(ipc->u.lhs, 0)) {
+		/* nth 0 is implied 1 */
+		if (!ipc->nth || n == ipc->nth) {
+			dosub(ipc->rhs);		/* perform it once */
+			n++;				/* mark for return */
+			break;
+		}
+		needs_advance = n++;
+	}
+	if (n == 1)
 		return(FALSE);			/* command fails */
 
 	if (ipc->flags.global)			/* if global flag enabled */
@@ -443,6 +453,7 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 		*sp++ = c & 0177;
 		if (sp >= genbuf + MAXBUF)
 			fprintf(stderr, LTLMSG);
+
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
@@ -525,6 +536,7 @@ static void command(sedcmd *ipc)
 	register int	i;
 	char		*execp;
 
+	needs_advance = 0;
 	switch(ipc->command)
 	{
 	case ACMD:		/* append */

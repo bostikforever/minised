@@ -60,6 +60,7 @@ typedef struct	cmd_t			/* compiled-command representation */
 		unsigned print   : 2;	/* was g postfix specified? */
 		unsigned inrange : 1;	/* in an address range? */
 	} flags;
+	unsigned nth;			/* sed nth occurance */
 }
 sedcmd;		/* use this name for declarations */
 
