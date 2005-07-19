@@ -35,6 +35,7 @@ done
 
 if [ $errors -ne 0 ]; then
 	echo -e "\n\t$errors error(s) total!\n"
+	[ $time -ne 0 ] && echo "(timing supressed due to errors)"
 elif [ $time -ne 0 ]; then
 	echo "Timing:"
 	time for x in *.sed ; do
