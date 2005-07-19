@@ -77,6 +77,23 @@ static char	REITL[]	= "RE too long: %s";
 static char	TMLNR[]	= "too many line numbers";
 static char	TRAIL[]	= "command \"%s\" has trailing garbage";
 static char	RETER[] = "RE not terminated: %s";
+static char	CCERR[] = "unknown character class: %s";
+
+/* cclass to c function mapping ,-) */
+char* cclasses[] = {
+	"alnum", "a-zA-Z0-9",
+	"lower", "a-z",
+	"space", " \f\n\r\t\v",
+	"alpha", "a-zA-Z",
+	"digit", "0-9",
+	"upper", "A-Z",
+	"blank", " \t",
+	"xdigit", "0-9A-Za-z",
+	"cntrl", "\1-\31\127",
+	"print", " -\127",
+	"graph", "!-\127",
+	"punct", ".,;:",
+	NULL, NULL};
  
 typedef struct			/* represent a command label */
 {
@@ -619,6 +636,46 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			svclass = sp;		/* save ptr to class start */
 			do {
 				if (c == '\0') die(CGMSG);
+				/* handle predefined character classes */
+				if (c == '[' && *sp == ':')
+				{
+				  /* look for the matching ":]]" */
+				  char *p, *p2;
+				  for (p = sp+3; *p; p++)
+				    if  (*p == ']' &&
+				         *(p-1) == ']' &&
+					 *(p-2) == ':')
+					{
+					  char cc[8];
+					  p2 = sp+1;
+					  for (p2 = sp+1;
+					       p2 < p-2 && p2-sp-1 < sizeof(cc);
+					       p2++)
+					    cc[p2-sp-1] = *p2;
+					  cc[p2-sp-1] = 0; /* termination */
+
+					  char **it = cclasses;
+					  while (*it && strcmp(*it, cc))
+						it +=2;
+					  if (!*it++)
+					    die(CCERR);
+
+					  /* generate mask */
+					  p2 = *it;
+					  while (*p2) {
+					    if (p2[1] == '-' && p2[2]) {
+						for (c = *p2; c <= p2[2]; c++)
+                                		  ep[c >> 3] |= bits[c & 7];
+						p2 += 3;
+					    }
+					    else {
+						c = *p2++;
+					  	ep[c >> 3] |= bits[c & 7];
+					    }
+					  }
+					  sp = p; c = 0; break;
+					}
+				}
 
 				/* handle character ranges */
 				if (c == '-' && sp > svclass && *sp != ']')
@@ -635,7 +692,8 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 						c = '\r';
 
 				/* enter (possibly translated) char in set */
-				ep[c >> 3] |= bits[c & 7];
+				if (c)
+					ep[c >> 3] |= bits[c & 7];
 			} while
 				((c = *sp++) != ']');
 
