@@ -6,5 +6,5 @@ try to debug the problem and propose a patch.
 We will focus on POSIX conformance and small size - GNU sed extensions are
 most likely not accepted.
 
-Please report issues to: rene@exactcode.de
+Please report issues to: Rene Rebe <rene@exactcode.de>
 
