@@ -55,6 +55,7 @@ static char	*locs;
 
 /* command-logic flags */
 static int	lastline;		/* do-line flag */
+static int	line_with_newline;	/* line had newline */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
 static int	needs_advance;		/* needs inc after substitution */
@@ -140,7 +141,8 @@ void execute(char* file)
 		if (!nflag && !delete)
 		{
 			fwrite(linebuf, spend - linebuf, 1, stdout);
-			putc('\n', stdout);
+			if (line_with_newline)
+				putc('\n', stdout);
 		}
 
 		/* if we've been set up for append, emit the text from it */
@@ -740,6 +742,7 @@ static char *getline(char *buf, int max)
 		/* find the end of the input and overwrite a possible '\n' */
 		while (*buf != '\n' && *buf != 0)
 		    buf++;
+		line_with_newline = *buf == '\n';
 		*buf=0;
 
 		/* detect last line - but only if the address was used in a command */
