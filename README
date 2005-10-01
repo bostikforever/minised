@@ -1,11 +1,11 @@
 				small-sed
-		(by Eric S. Raymond, <esr@snark.thyrsus.com>
-		 and Rene Rebe <rene@exactcode.de>)
+		by Eric S. Raymond, <esr@snark.thyrsus.com>
+		     and Rene Rebe <rene@exactcode.de>
 
-This is a smaller, cheaper, faster SED utility. Minix uses it. GNU used
+This is a smaller, cheaper, and faster SED utility. Minix uses it. GNU used
 to use it, until they built their own sed around an extended (some would
-say over-extended) regexp package and it is used for embedded tasks (e.g.
-by the T2 SDE <http://www.t2-project.org>).
+say over-extended) regexp package and it is used for embedded tasks (for
+example by the T2 SDE - http://www.t2-project.org).
 
 The original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
 Some Minix hacker ran them together into a single-file version, mnsed.c which
@@ -25,7 +25,8 @@ a real test suite. Also the function declaration and definition have been
 converted from the K&R C to ANSI C.
 
 The 1.6 version includes support for the n'th match for the substitude command
-as well as support for predefined character classes.
+as well as support for predefined character classes and only writes lines
+with newline if one was present in the input line (compatible with GNU sed).
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
@@ -34,14 +35,14 @@ sedexec.c	-- sed program execution
 sed.1		-- source for the man page
 tests/		-- a small set of sed tests
 
-For this release I have put the man page in man format.
+For some releases the man page in the man format.
 
 Surf to
 
    http://www.exactcode.de/oss/minised/
-   http://www.catb.org/~esr
+   http://www.catb.org/~esr/
 
-for updates of this software.  There is a sed FAQ kept at these
+for updates of this software. There is a sed FAQ kept at these
 locations:
 
    http://www.dreamwvr.com/sed-info/sed-faq.html
