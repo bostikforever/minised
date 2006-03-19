@@ -12,6 +12,7 @@ dosub() does right-hand-side substitution.  Getline() does text input;
 readout() and memcmp() are output and string-comparison utilities.  
 */
 
+#include <stdlib.h>	/* exit */
 #include <stdio.h>	/* {f}puts, {f}printf, getc/putc, f{re}open, fclose */
 #include <ctype.h>	/* for isprint(), isdigit(), toascii() macros */
 #include <string.h>	/* for memcmp(3) */
