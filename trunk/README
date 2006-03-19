@@ -28,6 +28,12 @@ The 1.6 version includes support for the n'th match for the substitude command
 as well as support for predefined character classes and only writes lines
 with newline if one was present in the input line (compatible with GNU sed).
 
+The 1.7 version fixed a segmentation fault with empty regular expressions,
+not to leak other buffer content for groups of commands and escaping
+numerical seperators in regular expressions by disabling obscure code.
+Additionally compilation with older compilers as well as warnings with the
+latest gcc versions have been corrected.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
