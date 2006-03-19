@@ -646,7 +646,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				         *(p-1) == ']' &&
 					 *(p-2) == ':')
 					{
-					  char cc[8];
+					  char cc[8], **it;
 					  p2 = sp+1;
 					  for (p2 = sp+1;
 					       p2 < p-2 && p2-sp-1 < sizeof(cc);
@@ -654,7 +654,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 					    cc[p2-sp-1] = *p2;
 					  cc[p2-sp-1] = 0; /* termination */
 
-					  char **it = cclasses;
+					  it = cclasses;
 					  while (*it && strcmp(*it, cc))
 						it +=2;
 					  if (!*it++)
