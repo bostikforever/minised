@@ -524,7 +524,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	int		tags;		/* # of closed tags */
 
 	if (*cp == redelim)		/* if first char is RE endmarker */
-		return(cp++, expbuf);	/* leave existing RE unchanged */
+		die(FRENL);;		/* bad no RE, TODO: check for regressions -ReneR */
 
 	lastep = NULL;			/* there's no previous RE */
 	brnestp = brnest;		/* initialize ptr to brnest array */

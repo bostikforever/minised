@@ -24,11 +24,16 @@ for x in *.sed ; do
 	x=${x/.sed/}
 	echo -n "Running test $x ..."
 	$1 -f $x.sed $x.in > $tmp 2>&1
-	if ! cmp $tmp $x.out 2>&1 >/dev/null ; then
+	error=$?
+
+	if [ ! -f $x.out -a $error != 0 ]; then
+		echo " Failed (as expected)"
+	elif cmp $tmp $x.out 2>&1 >/dev/null ; then
+		echo " Passed"
+	else
 		echo " Failed !!!"
 		[ $verbose -eq 1 ] && diff -u $x.out $tmp
 		: $((errors++))
-	else
 		echo " Passed"
 	fi
 done
