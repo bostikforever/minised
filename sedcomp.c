@@ -15,6 +15,7 @@ resolves references at the end.
    The operation of execute() is described in its source module. 
 */
 
+#include <stdlib.h>		/* exit */
 #include <stdio.h>		/* uses getc, fprintf, fopen, fclose */
 #include "sed.h"		/* command type struct and name defines */
 
