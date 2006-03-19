@@ -320,7 +320,7 @@ static int cmdcomp(char cchar)
 		cmdp->flags.allbut = !cmdp->flags.allbut;
 		cmpstk[bdepth++] = &(cmdp->u.link);
 		if (++cmdp >= cmds + MAXCMDS) die(TMCDS);
-		if (*cp == '\0') *cp = ';';	/* get next cmd w/o lineread */
+		if (*cp == '\0') *cp++ = ';', *cp = '\0';	/* get next cmd w/o lineread */
 		return(1);
 
 	case '}':	/* end command group */
