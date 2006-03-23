@@ -11,7 +11,7 @@ sedexec.o: sedexec.c sed.h
 
 install:
 	install minised $(PREFIX)/bin/
-	install sed.1 $(PREFIX)/man/man1/
+	install minised.1 $(PREFIX)/man/man1/
 
 clean:
 	rm -f minised sedcomp.o sedexec.o
