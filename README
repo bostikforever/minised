@@ -34,6 +34,12 @@ numerical seperators in regular expressions by disabling obscure code.
 Additionally compilation with older compilers as well as warnings with the
 latest gcc versions have been corrected.
 
+The 1.8 version fixes matching of some escaped characters (a regression
+introduced with \+ star matching), \+ star matching to corretly copy
+and mark the internal bytecode representation, back references inside lhs
+regular expressions matching (to work at all) and marking the correct
+regular expression for star matches.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
