@@ -306,11 +306,11 @@ static int advance(char* lp, char* ep)
 			bracend[*ep++] = lp;	/* mark it */
 			continue;		/* and go */
 
-		case CBACK: 
+		case CBACK:
 			bbeg = brastart[*ep];
 			ct = bracend[*ep++] - bbeg;
 
-			if (memcmp(bbeg, lp, ct))
+			if (memcmp(bbeg, lp, ct) == 0)
 			{
 				lp += ct;
 				continue;
@@ -321,7 +321,7 @@ static int advance(char* lp, char* ep)
 			bbeg = brastart[*ep];
 			ct = bracend[*ep++] - bbeg;
 			curlp = lp;
-			while(memcmp(bbeg, lp, ct))
+			while(memcmp(bbeg, lp, ct) == 0)
 				lp += ct;
 
 			while(lp >= curlp)
