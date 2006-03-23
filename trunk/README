@@ -40,6 +40,9 @@ and mark the internal bytecode representation, back references inside lhs
 regular expressions matching (to work at all) and marking the correct
 regular expression for star matches.
 
+The 1.9 version included a microoptimization shaving some bytes off the
+binary and some cpy cycles at run time.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
