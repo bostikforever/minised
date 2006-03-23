@@ -524,7 +524,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	int		tags;		/* # of closed tags */
 
 	if (*cp == redelim)		/* if first char is RE endmarker */
-		die(FRENL);;		/* bad no RE, TODO: check for regressions -ReneR */
+		die(FRENL);		/* bad no RE, TODO: check for regressions -ReneR */
 
 	lastep = NULL;			/* there's no previous RE */
 	brnestp = brnest;		/* initialize ptr to brnest array */
@@ -573,8 +573,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				tags++;			/* count closed tags */
 				continue;
 			}
-#if 0
-			else if (c >= '1' && c <= '9')	/* tag use */
+			else if (c >= '1' && c <= '9' && c != redelim)	/* tag use, if !delim */
 			{
 				if ((c -= '1') >= tags)	/* too few */
 					return(BAD);
@@ -582,7 +581,6 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				*ep++ = c;		/* and the number */
 				continue;
 			}
-#endif
 			else if (c == '\n')	/* escaped newline no good */
 				return(cp = sp, BAD);
 			else if (c == 'n')		/* match a newline */
