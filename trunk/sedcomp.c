@@ -33,7 +33,6 @@ long	linenum[MAXLINES];	/* numeric-addresses table */
 int	nflag;			/* -n option flag */
 int	eargc;			/* scratch copy of argument count */
 sedcmd	*pending	= NULL;	/* next command to be executed */
-char	bits[]		= {1,2,4,8,16,32,64,128};
 
 int	last_line_used = 0;	/* last line address ($) was used */
 
@@ -669,12 +668,12 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 					  while (*p2) {
 					    if (p2[1] == '-' && p2[2]) {
 						for (c = *p2; c <= p2[2]; c++)
-                                		  ep[c >> 3] |= bits[c & 7];
+                                		  ep[c >> 3] |= bits(c & 7);
 						p2 += 3;
 					    }
 					    else {
 						c = *p2++;
-					  	ep[c >> 3] |= bits[c & 7];
+					  	ep[c >> 3] |= bits(c & 7);
 					    }
 					  }
 					  sp = p; c = 0; break;
@@ -684,7 +683,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				/* handle character ranges */
 				if (c == '-' && sp > svclass && *sp != ']')
 					for (c = sp[-2]; c < *sp; c++)
-						ep[c >> 3] |= bits[c & 7];
+						ep[c >> 3] |= bits(c & 7);
 
 				/* handle escape sequences in sets */
 				if (c == '\\')
@@ -697,7 +696,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 				/* enter (possibly translated) char in set */
 				if (c)
-					ep[c >> 3] |= bits[c & 7];
+					ep[c >> 3] |= bits(c & 7);
 			} while
 				((c = *sp++) != ']');
 

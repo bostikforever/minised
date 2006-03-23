@@ -29,7 +29,6 @@ extern long	linenum[];	/* numeric-addresses table */
 extern int	nflag;		/* -n option flag */
 extern int	eargc;		/* scratch copy of argument count */
 extern sedcmd	*pending;	/* ptr to command waiting to be executed */
-extern char	bits[];		/* the bits table */
 
 extern int	last_line_used; /* last line address ($) used */
 
@@ -291,7 +290,7 @@ static int advance(char* lp, char* ep)
 
 		case CCL:		/* a closure */
 			c = *lp++ & 0177;
-			if (ep[c>>3] & bits[c & 07])	/* is char in set? */
+			if (ep[c>>3] & bits(c & 07))	/* is char in set? */
 			{
 				ep += 16;	/* then skip rest of bitmask */
 				continue;	/*   and keep going */
@@ -349,7 +348,7 @@ static int advance(char* lp, char* ep)
 			do {
 				c = *lp++ & 0x7F;	/* match any in set */
 			} while
-				(ep[c>>3] & bits[c & 07]);
+				(ep[c>>3] & bits(c & 07));
 			ep += 16;		/* skip past the set */
 			goto star;		/* match followers */
 

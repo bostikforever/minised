@@ -80,4 +80,6 @@ sedcmd;		/* use this name for declarations */
 #define CEND	20	/* symbol for end-of-source */
 #define CEOF	22	/* end-of-field mark */
 
+#define bits(b) (1 << (b))
+
 /* sed.h ends here */
