@@ -28,13 +28,15 @@ for x in *.sed ; do
 
 	if [ ! -f $x.out -a $error != 0 ]; then
 		echo " Failed (as expected)"
+	elif [ ! -f $x.out ]; then
+		echo " Passed (unexpected)"
+		: $((errors++))
 	elif cmp $tmp $x.out 2>&1 >/dev/null ; then
 		echo " Passed"
 	else
 		echo " Failed !!!"
 		[ $verbose -eq 1 ] && diff -u $x.out $tmp
 		: $((errors++))
-		echo " Passed"
 	fi
 done
 
