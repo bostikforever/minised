@@ -601,9 +601,9 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			  while (lastep < pp)	/* so we can blt the pattern */
 				*ep++ = *lastep++;
 			  *lastep |= STAR;	/* flag the copy */
+			  continue;
 			}
-			else
-				goto defchar;		/* else match \c */
+			goto defchar;		/* else match \c */
 
 		case '\0':	/* ignore nuls */
 			continue;
