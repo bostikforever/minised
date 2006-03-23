@@ -516,6 +516,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	register int	c;		/* current-character pointer */
 	char		negclass;	/* all-but flag */
 	char		*lastep;	/* ptr to last expr compiled */
+	char		*lastep2;	/* dito, but from the last loop */
 	char		*svclass;	/* start of current char class */
 	char		brnest[MAXTAGS];	/* bracket-nesting array */
 	char		*brnestp;	/* ptr to current bracket-nest */
@@ -526,7 +527,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	if (*cp == redelim)		/* if first char is RE endmarker */
 		die(FRENL);		/* bad no RE, TODO: check for regressions -ReneR */
 
-	lastep = NULL;			/* there's no previous RE */
+	lastep = lastep2 = NULL;	/* there's no previous RE */
 	brnestp = brnest;		/* initialize ptr to brnest array */
 	tags = bcount = 0;		/* initialize counters */
 
@@ -547,10 +548,9 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			*ep++ = CEOF;		/* write end-of-pattern mark */
 			return(ep);		/* return ptr to compiled RE */
 		}
-		/* TODO: this should be done nicer */
-		if ((c != '*') &&
-		    (c != '\\' && *sp != '+'))	/* if we're a postfix op */
-			lastep = ep;		/*   get ready to match last */
+
+		lastep = lastep2;
+		lastep2 = ep;
 
 		switch (c)
 		{
@@ -562,6 +562,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				*brnestp++ = bcount;	/* update tag stack */
 				*ep++ = CBRA;		/* enter tag-start */
 				*ep++ = bcount++;	/* bump tag count */
+				lastep2 = NULL;
 				continue;
 			}
 			else if (c == ')')	/* end tagged section */
@@ -596,9 +597,10 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			  if (*lastep == CKET)	/* can't iterate a tag */
 				return(cp = sp, BAD);
 			  pp = ep;		/* else save old ep */
+			  *ep++ = *lastep++ | STAR;	/* flag the copy */
 			  while (lastep < pp)	/* so we can blt the pattern */
 				*ep++ = *lastep++;
-			  *lastep |= STAR;	/* flag the copy */
+			  lastep2 = lastep;       /* no new expression */
 			  continue;
 			}
 			goto defchar;		/* else match \c */
@@ -619,6 +621,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			if (*lastep == CKET)	/* can't iterate a tag */
 				return(cp = sp, BAD);
 			*lastep |= STAR;	/* flag previous pattern */
+			lastep2 = lastep;	/* no new expression */
 			continue;
 
 		case '$':	/* match only end-of-line */
