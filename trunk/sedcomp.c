@@ -487,8 +487,9 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 		/* copy for the likely case it is not s.th. special */
 		if ((*rhsp = *p++) == '\\') /* back reference or escape  */
 		{
-			if (*p > '0' && *p <= '9') /* back reference */
+			if (*p >= '0' && *p <= '9') /* back reference */
 			{
+			dobackref:
 				*rhsp = *p++;
 				/* check validity of pattern tag */
 				if (*rhsp > bcount + '0')
@@ -511,6 +512,11 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 			*rhsp++ = '\0';		/* cap the expression string */
 			cp = p;
 			return(rhsp);		/* pt at 1 past the RE */
+		}
+		else if (*rhsp == '&')		/* special case, convert to backref \0 */
+		{
+			*--p = '0';
+			goto dobackref;
 		}
 		else if (*rhsp++ == '\0')	/* last ch not RE end, help! */
 			return(BAD);
