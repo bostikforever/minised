@@ -409,12 +409,20 @@ static int cmdcomp(char cchar)
 			die(RETER);
 		else
 			redelim = *cp++;
+		
 		if ((fp = recomp(cmdp->u.lhs = fp, redelim)) == BAD)
 			die(CGMSG);
-		if (fp == cmdp->u.lhs)		/* if compiled RE zero len */ 
-			cmdp->u.lhs = lastre;	/*   use the previous one */
+		if (fp == cmdp->u.lhs) {	/* if compiled RE zero len */ 
+			if (lastre) {
+				cmdp->u.lhs = lastre;	/* use the previous one */
+				cp++;                   /*   skip delim */
+			}
+			else
+				die(FRENL);
+		}
 		else				/* otherwise */
 			lastre = cmdp->u.lhs;	/*   save the one just found */
+		
 		if ((cmdp->rhs = fp) > poolend) die(TMTXT);
 		if ((fp = rhscomp(cmdp->rhs, redelim)) == BAD) die(CGMSG);
 		if (gflag) cmdp->flags.global++;
@@ -526,8 +534,9 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	int 		classct;	/* class element count */
 	int		tags;		/* # of closed tags */
 
-	if (*cp == redelim)		/* if first char is RE endmarker */
-		die(FRENL);		/* bad no RE, TODO: check for regressions -ReneR */
+	if (*cp == redelim) {		/* if first char is RE endmarker */
+	    return(ep);
+	}
 
 	lastep = lastep2 = NULL;	/* there's no previous RE */
 	brnestp = brnest;		/* initialize ptr to brnest array */
