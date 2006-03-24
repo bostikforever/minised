@@ -89,10 +89,10 @@ char* cclasses[] = {
 	"upper", "A-Z",
 	"blank", " \t",
 	"xdigit", "0-9A-Fa-f",
-	"cntrl", "\1-\31\127",
-	"print", " -\126",
-	"graph", "!-\126",
-	"punct", "!-\47""\58-\64""\091-\096""\123-\126",
+	"cntrl", "\x01-\x1f\x7e",
+	"print", " -\x7e",
+	"graph", "!-\x7e",
+	"punct", "!-/:-@[-`{-\x7e",
 	NULL, NULL};
  
 typedef struct			/* represent a command label */
