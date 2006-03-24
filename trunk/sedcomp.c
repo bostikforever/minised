@@ -137,6 +137,9 @@ static label *search(label *ptr);
 static void compile(void);
 static void resolve(void);
 
+/* sedexec.c protypes */
+void execute(char* file);
+
 /* main sequence of the stream editor */
 int main(int argc, char *argv[])
 {
