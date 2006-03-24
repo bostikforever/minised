@@ -442,7 +442,7 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 
 	for (rp = rhsbuf; c = *rp++; )
 	{
-		if (c == '&')
+		if (c & 0200 && (c & 0177) == '0')
 		{
 			sp = place(sp, loc1, loc2);
 			continue;
