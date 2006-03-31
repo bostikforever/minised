@@ -41,7 +41,10 @@ regular expressions matching (to work at all) and marking the correct
 regular expression for star matches.
 
 The 1.9 version included a microoptimization shaving some bytes off the
-binary and some cpy cycles at run time.
+binary and some cpy cycles at run time, reusing the previous regular
+expressions for empty ones, predefined character classes with control
+characters, handling of escaped ampesands and support for backreference
+\0 ...
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
