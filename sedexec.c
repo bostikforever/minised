@@ -1,4 +1,4 @@
-/* sedexec.c -- execute compiled form of stream editor commands
+/* sedexec.c -- axecute compiled form of stream editor commands
    Copyright (C) 1995-2003 Eric S. Raymond
    Copyright (C) 2004-2006 Rene Rebe
 
@@ -203,6 +203,10 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 {
 	char *p1, *p2, c;
 
+	/* zero brace start/end buffer, might not matched due star operator */
+	for (c = 0; c < MAXTAGS; ++c)
+		brastart[c] = bracend[c] = NULL;
+
 	if (gf)
 	{
 		if (*expbuf)
@@ -324,8 +328,6 @@ static int advance(char* lp, char* ep, char** eob)
 		{
 			char *lastlp;
 			curlp = lp;
-			brastart[*ep] = lp;
-			bracend[*ep] = lp;
 			while (advance(lastlp=lp, ep+1, &lp)) {
 				brastart[*ep] = lastlp;   /* mark latest */
 			}
