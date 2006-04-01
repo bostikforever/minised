@@ -1,6 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2005 Rene Rebe
+   Copyright (C) 2004-2006 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
@@ -589,6 +589,8 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				*ep++ = CKET;		/* enter end-of-tag */
 				*ep++ = *--brnestp;	/* pop tag stack */
 				tags++;			/* count closed tags */
+				for (lastep2 = ep-1; *lastep2 != CBRA; )
+					--lastep2; /* FIXME: lastep becomes start */
 				continue;
 			}
 			else if (c >= '1' && c <= '9' && c != redelim)	/* tag use, if !delim */
@@ -607,12 +609,10 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				c = '\t';
 			else if (c == 'r')		/* match a return */
 				c = '\r';
-			else if (c== '+')/* 1 to n repeats of previous pattern */
+			else if (c == '+') /* 1..n repeat of previous pattern */
 			{
 			  if (lastep == NULL)	/* if + not first on line */
 				goto defchar;	/*   match a literal + */
-			  if (*lastep == CKET)	/* can't iterate a tag */
-				return(cp = sp, BAD);
 			  pp = ep;		/* else save old ep */
 			  *ep++ = *lastep++ | STAR;	/* flag the copy */
 			  while (lastep < pp)	/* so we can blt the pattern */
@@ -632,11 +632,9 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			*ep++ = CDOT;
 			continue;
 
-		case '*':	/* 0..n repeats of previous pattern */
+		case '*':	/* 0..n repeat of previous pattern */
 			if (lastep == NULL)	/* if * isn't first on line */
 				goto defchar;	/*   match a literal * */
-			if (*lastep == CKET)	/* can't iterate a tag */
-				return(cp = sp, BAD);
 			*lastep |= STAR;	/* flag previous pattern */
 			lastep2 = lastep;	/* no new expression */
 			continue;
