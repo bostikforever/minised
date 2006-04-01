@@ -1,6 +1,6 @@
 /* sedexec.c -- execute compiled form of stream editor commands
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2005 Rene Rebe
+   Copyright (C) 2004-2006 Rene Rebe
 
    The single entry point of this module is the function execute(). It
 may take a string argument (the name of a file to be used as text)  or
@@ -68,7 +68,7 @@ static char	*brastart[MAXTAGS];	/* tagged pattern end pointers */
 /* prototypes */
 static char *getline(char *buf, int max);
 static char *place(char* asp, char* al1, char* al2);
-static int advance(char* lp, char* ep);
+static int advance(char* lp, char* ep, char** eob);
 static int match(char *expbuf, int gf);
 static int selected(sedcmd *ipc);
 static int substitute(sedcmd *ipc);
@@ -227,7 +227,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 		loc1 = p1;
 		if(*p2 == CCHR && p2[1] != *p1)	/* 1st char is wrong */
 			return(FALSE);		/*   so fail */
-		return(advance(p1, p2));	/* else try to match rest */
+		return(advance(p1, p2, NULL));	/* else try to match rest */
 	}
 
 	/* quick check for 1st character if it's literal */
@@ -237,7 +237,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 		do {
 			if (*p1 != c)
 				continue;	/* scan the source string */
-			if (advance(p1, p2))	/* found it, match the rest */
+			if (advance(p1, p2,NULL)) /* found it, match the rest */
 				return(loc1 = p1, 1);
 		} while
 			(*p1++);
@@ -246,7 +246,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 
 	/* else try for unanchored match of the pattern */
 	do {
-		if (advance(p1, p2))
+		if (advance(p1, p2, NULL))
 			return(loc1 = p1, 1);
 	} while
 		(*p1++);
@@ -258,7 +258,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 /* attempt to advance match pointer by one pattern element
    lp:	source (linebuf) ptr
    ep:	regular expression element ptr */
-static int advance(char* lp, char* ep)
+static int advance(char* lp, char* ep, char** eob)
 {
 	char	*curlp;		/* save ptr for closures */ 
 	char	c;		/* scratch character holder */
@@ -303,9 +303,13 @@ static int advance(char* lp, char* ep)
 
 		case CKET:		/* end of tagged pattern */
 			bracend[*ep++] = lp;	/* mark it */
+			if (eob) {
+				*eob =lp;
+				return (TRUE);
+			}
 			continue;		/* and go */
 
-		case CBACK:
+		case CBACK:		/* match back reference */
 			bbeg = brastart[*ep];
 			ct = bracend[*ep++] - bbeg;
 
@@ -316,7 +320,28 @@ static int advance(char* lp, char* ep)
 			}
 			return(FALSE);
 
-		case CBACK|STAR:
+		case CBRA|STAR:		/* \(...\)* */
+		{
+			char *lastlp;
+			curlp = lp;
+			brastart[*ep] = lp;
+			bracend[*ep] = lp;
+			while (advance(lastlp=lp, ep+1, &lp)) {
+				brastart[*ep] = lastlp;   /* mark latest */
+			}
+			ep++;
+
+			/* FIXME: scan for the brace end */
+			while (*ep != CKET)
+				ep++;
+			ep+=2;
+
+			if (lp == curlp) /* 0 matches */
+				continue;
+			lp++;
+			goto star;
+		}
+		case CBACK|STAR:	/* \n* */
 			bbeg = brastart[*ep];
 			ct = bracend[*ep++] - bbeg;
 			curlp = lp;
@@ -325,12 +350,11 @@ static int advance(char* lp, char* ep)
 
 			while(lp >= curlp)
 			{
-				if (advance(lp, ep))
+				if (advance(lp, ep, eob))
 					return(TRUE);
 				lp -= ct;
 			}
 			return(FALSE);
-
 
 		case CDOT|STAR:		/* match .* */
 			curlp = lp;		/* save closure start loc */
@@ -357,17 +381,17 @@ static int advance(char* lp, char* ep)
 			if (--lp == curlp) {	/* 0 matches */
 				continue;
 			}
-
+#if 0
 			if (*ep == CCHR)
 			{
 				c = ep[1];
 				do {
 					if (*lp != c)
 						continue;
-					if (advance(lp, ep))
+					if (advance(lp, ep, eob))
 						return(TRUE);
 				} while
-					(lp-- > curlp);
+				(lp-- > curlp);
 				return(FALSE);
 			}
 
@@ -377,24 +401,26 @@ static int advance(char* lp, char* ep)
 				do {
 					if (*lp != c)
 						continue;
-					if (advance(lp, ep))
+					if (advance(lp, ep, eob))
 						return(TRUE);
 				} while
 					(lp-- > curlp);
 				return(FALSE);
 			}
-	
+#endif
+			/* match followers, try shorter match, if needed */
 			do {
 				if (lp == locs)
 					break;
-				if (advance(lp, ep))
+				if (advance(lp, ep, eob))
 					return(TRUE);
 			} while
 				(lp-- > curlp);
 			return(FALSE);
 
 		default:
-			fprintf(stderr, "sed: RE error, %o\n", *--ep);
+			fprintf(stderr, "sed: internal RE error, %o\n", *--ep);
+			exit (2);
 		}
 }
 
