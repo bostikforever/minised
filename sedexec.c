@@ -338,6 +338,7 @@ static int advance(char* lp, char* ep, char** eob)
 				ep++;
 			ep+=2;
 
+			needs_advance = 1;
 			if (lp == curlp) /* 0 matches */
 				continue;
 			lp++;
