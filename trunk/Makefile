@@ -1,7 +1,6 @@
 # Makefile for minised
 
 PREFIX=/usr
-VERS=1.6
 
 minised: sedcomp.o sedexec.o
 	$(CC) $(LFLAGS) sedcomp.o sedexec.o -o minised
