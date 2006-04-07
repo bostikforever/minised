@@ -203,10 +203,6 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 {
 	char *p1, *p2, c;
 
-	/* zero brace start/end buffer, might not matched due star operator */
-	for (c = 0; c < MAXTAGS; ++c)
-		brastart[c] = bracend[c] = NULL;
-
 	if (gf)
 	{
 		if (*expbuf)
@@ -268,6 +264,7 @@ static int advance(char* lp, char* ep, char** eob)
 	char	c;		/* scratch character holder */
 	char	*bbeg;
 	int	ct;
+	signed int	bcount = -1;
 
 	for (;;)
 		switch (*ep++)
@@ -306,11 +303,13 @@ static int advance(char* lp, char* ep, char** eob)
 			continue;		/* and go */
 
 		case CKET:		/* end of tagged pattern */
-			bracend[*ep++] = lp;	/* mark it */
+			bcount = *ep;
 			if (eob) {
-				*eob =lp;
+				*eob = lp;
 				return (TRUE);
 			}
+			else
+				bracend[*ep++] = lp;    /* mark it */
 			continue;		/* and go */
 
 		case CBACK:		/* match back reference */
@@ -328,8 +327,16 @@ static int advance(char* lp, char* ep, char** eob)
 		{
 			char *lastlp;
 			curlp = lp;
+
+			if (*ep > bcount)
+				brastart[*ep] = bracend[*ep] = lp;
+
 			while (advance(lastlp=lp, ep+1, &lp)) {
-				brastart[*ep] = lastlp;   /* mark latest */
+				if (*ep > bcount && lp != lastlp) {
+					bracend[*ep] = lp;    /* mark it */
+					brastart[*ep] = lastlp;
+				}
+				if (lp == lastlp) break;
 			}
 			ep++;
 
@@ -341,7 +348,7 @@ static int advance(char* lp, char* ep, char** eob)
 			needs_advance = 1;
 			if (lp == curlp) /* 0 matches */
 				continue;
-			lp++;
+			lp++; // because the star handling decrements it
 			goto star;
 		}
 		case CBACK|STAR:	/* \n* */
