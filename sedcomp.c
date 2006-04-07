@@ -643,7 +643,6 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			if (*sp != redelim)	/* if we're not at end of RE */
 				goto defchar;	/*   match a literal $ */
 			*ep++ = CDOL;		/* insert end-symbol mark */
-			last_line_used = TRUE;
 			continue;
 
 		case '[':	/* begin character set pattern */
