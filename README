@@ -41,10 +41,16 @@ regular expressions matching (to work at all) and marking the correct
 regular expression for star matches.
 
 The 1.9 version included a microoptimization shaving some bytes off the
-binary and some cpy cycles at run time, reusing the previous regular
+binary and some cpu cycles at run time, reusing the previous regular
 expressions for empty ones, predefined character classes with control
 characters, handling of escaped ampesands and support for backreference
 \0 and Kleene star operator on groups.
+
+The 1.10 version fixed a special case of grouped star matching where
+\+1..n overwrote the last match, not to infinite loop on certain zero match
+grouped star cases and not to crash on w(rite to file). The version also
+no longer falls into the conservative end-of-file matching mode when just
+end-of-line matching was used.
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
