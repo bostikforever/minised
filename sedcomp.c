@@ -309,7 +309,7 @@ static int cmdcomp(char cchar)
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
 	static char	*fname[WFILES];		/* w file name pointers */
 	static FILE	*fout[WFILES];		/* w file file ptrs */
-	static int	nwfiles	= 1;		/* count of open w files */
+	static int	nwfiles	= 0;		/* count of open w files */
 	int		i;			/* indexing dummy used in w */
 	sedcmd		*sp1, *sp2;		/* temps for label searches */
 	label		*lpt;			/* ditto, and the searcher */
