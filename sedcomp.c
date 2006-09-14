@@ -309,13 +309,18 @@ static int cmdcomp(char cchar)
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
 	static char	*fname[WFILES];		/* w file name pointers */
 	static FILE	*fout[WFILES];		/* w file file ptrs */
-	static int	nwfiles	= 0;		/* count of open w files */
+	static int	nwfiles	= 2;		/* count of open w files */
 	int		i;			/* indexing dummy used in w */
 	sedcmd		*sp1, *sp2;		/* temps for label searches */
 	label		*lpt;			/* ditto, and the searcher */
 	char		redelim;		/* current RE delimiter */
 
 	fout[0] = stdout;
+	fout[1] = stderr;
+	
+	fname[0] = "/dev/stdout";
+	fname[1] = "/dev/stderr";
+
 	switch(cchar)
 	{
 	case '{':	/* start command group */
