@@ -52,6 +52,10 @@ grouped star cases and not to crash on w(rite to file). The version also
 no longer falls into the conservative end-of-file matching mode when just
 end-of-line matching was used.
 
+The 1.11 version again fixed w(rite to file) handling to correctly honor
+/dev/stdout and /dev/stderr as GNU sed does and thus keep the streams in
+sync.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
