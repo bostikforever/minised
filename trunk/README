@@ -54,7 +54,8 @@ end-of-line matching was used.
 
 The 1.11 version again fixed w(rite to file) handling to correctly honor
 /dev/stdout and /dev/stderr as GNU sed does and thus keep the streams in
-sync.
+sync. Some unused variables have been removed and a two diagnostics
+fixed to be printed correctly.
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
@@ -74,4 +75,3 @@ for updates of this software. There is a sed FAQ kept at these
 locations:
 
    http://www.dreamwvr.com/sed-info/sed-faq.html
-
