@@ -48,7 +48,6 @@ static sedcmd	**aptr = appends;	/* ptr to current append */
 
 /* genbuf and its pointers */
 static char	genbuf[GENSIZ];
-static char	*lcomend = genbuf + GENSIZ;
 static char	*loc1;
 static char	*loc2;
 static char	*locs;
@@ -83,7 +82,6 @@ static void truncated(int h);
    file:  name of text source file to be filtered */
 void execute(char* file)
 {
-	register char		*p1, *p2;	/* dummy copy ptrs */
 	register sedcmd		*ipc;		/* ptr to current command */
 	char			*execp;		/* ptr to source */
 
@@ -560,7 +558,7 @@ static void truncated(int h)
 	last = lnum;
 
 	fprintf(stderr, "sed: ");
-	fprintf(stderr, h ? "hold space" : "line %D", lnum);
+	fprintf(stderr, h ? "hold space" : "line %ld", lnum);
 	fprintf(stderr, " truncated to %d characters\n", MAXBUF);
 }
 
@@ -570,8 +568,7 @@ static void command(sedcmd *ipc)
 	static int	didsub;			/* true if last s succeeded */
 	static char	holdsp[MAXHOLD];	/* the hold space */
 	static char	*hspend = holdsp;	/* hold space end pointer */
-	register char	*p1, *p2, *p3;
-	register int	i;
+	register char	*p1, *p2;
 	char		*execp;
 
 	needs_advance = 0;
