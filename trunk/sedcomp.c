@@ -17,6 +17,8 @@ resolves references at the end.
 
 #include <stdlib.h>		/* exit */
 #include <stdio.h>		/* uses getc, fprintf, fopen, fclose */
+#include <ctype.h>		/* isdigit */
+#include <string.h>		/* strcmp */
 #include "sed.h"		/* command type struct and name defines */
 
 /***** public stuff ******/
