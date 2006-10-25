@@ -659,10 +659,10 @@ static void command(sedcmd *ipc)
 	case LCMD:		/* list text */
 		listto(linebuf, (ipc->fout != NULL)?ipc->fout:stdout); break;
 
-	case CLCMD:	      /* dump text */
+	case CLCMD:		/* dump text */
 		dumpto(linebuf, (ipc->fout != NULL)?ipc->fout:stdout); break;
 
-	case NCMD:	/* read next line into pattern space */
+	case NCMD:		/* read next line into pattern space */
 		if (!nflag)
 			puts(linebuf);	/* flush out the current line */
 		if (aptr > appends)
@@ -676,7 +676,7 @@ static void command(sedcmd *ipc)
 		spend = execp;
 		break;
 
-	case CNCMD:	/* append next line to pattern space */
+	case CNCMD:		/* append next line to pattern space */
 		if (aptr > appends)
 			readout();
 		*spend++ = '\n';
