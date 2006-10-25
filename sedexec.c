@@ -513,13 +513,12 @@ static char *place(char* asp, char* al1, char* al2)		/* uses genbuf */
 	return(asp);
 }
 
-/* write a hex dump expansion of *p1... to fp
+/* list the pattern space in  visually unambiguous form *p1... to fp
    p1: the source
    fp: output stream to write to */
 static void listto(char *p1, FILE *fp)
 {
-	p1--;
-	while (*p1++,p1<spend)
+	for (; p1<spend; p1++)
 		if (isprint(*p1))
 			putc(*p1, fp);		/* pass it through */
 		else
@@ -532,7 +531,7 @@ static void listto(char *p1, FILE *fp)
 			case '\n':	putc('n', fp); break;	/* NL */
 			case '\r':	putc('r', fp); break;	/* CR */
 			case '\033':	putc('e', fp); break;	/* ESC */
-			default:	fprintf(fp, "%02x", *p1 & 0xFF);
+			default:	fprintf(fp, "%02x", *p1);
 			}
 		}
 	putc('\n', fp);
@@ -543,10 +542,9 @@ static void listto(char *p1, FILE *fp)
    fp: output */
 static void dumpto(char *p1, FILE *fp)
 {
-	p1--;
-	while(*p1++,p1<spend)
-		fprintf(fp, "%02x", *p1 & 0xFF);
-	fprintf(fp, "%02x", '\n' & 0xFF);
+	for (; p1<spend; p1++)
+		fprintf(fp, "%02x", *p1);
+	fprintf(fp, "%02x", '\n');
 	putc('\n', fp);
 }
 
