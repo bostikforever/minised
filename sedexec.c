@@ -519,7 +519,7 @@ static char *place(char* asp, char* al1, char* al2)		/* uses genbuf */
 static void listto(char *p1, FILE *fp)
 {
 	p1--;
-	for (; *p1++; p1<spend)
+	while (*p1++,p1<spend)
 		if (isprint(*p1))
 			putc(*p1, fp);		/* pass it through */
 		else
