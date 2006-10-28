@@ -57,6 +57,10 @@ The 1.11 version again fixed w(rite to file) handling to correctly honor
 sync. Some unused variables have been removed and a two diagnostics
 fixed to be printed correctly.
 
+The 1.12 version fixed the l(ist) command to actually work, some tiny
+optimizations have been performed as well as some more compiler warnings
+fixed.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
