@@ -65,7 +65,7 @@ static char	AD2NG[]	= "only one address allowed for %s";
 static char	TMCDS[]	= "too many commands, last was %s";
 static char	COCFI[]	= "cannot open command-file %s";
 static char	UFLAG[]	= "unknown flag %c";
-static char	COOFI[]	= "cannot open %s";
+/*static char	COOFI[]	= "cannot open %s";*/
 static char	CCOFI[]	= "cannot create %s";
 static char	ULABL[]	= "undefined label %s";
 static char	TMLBR[]	= "too many {'s";
@@ -297,11 +297,14 @@ static void compile(void)
 
 		SKIPWS(cp);			/* look for trailing stuff */
 		if (*cp != '\0')
-			if (*cp == ';') {
+		{
+			if (*cp == ';')
+			{
 				continue;
 			}
 			else if (*cp != '#' && *cp != '}')
 				die(TRAIL);
+		}
 	}
 }
 
@@ -346,7 +349,7 @@ static int cmdcomp(char cchar)
 	case ':':	/* label declaration */
 		if (cmdp->addr1) die(AD1NG);	/* no addresses allowed */
 		fp = gettext(lab->name = fp);	/* get the label name */
-		if (lpt = search(lab))		/* does it have a double? */
+		if ((lpt = search(lab)))	/* does it have a double? */
 		{
 			if (lpt->address) die(DLABL);	/* yes, abort */
 		}
@@ -366,9 +369,9 @@ static int cmdcomp(char cchar)
 		if (*cp == '\0')	/* if branch is to start of cmds... */
 		{
 			/* add current command to end of label last */
-			if (sp1 = lablst->last) 
+			if ((sp1 = lablst->last)) 
 			{
-				while(sp2 = sp1->u.link)
+				while((sp2 = sp1->u.link))
 					sp1 = sp2;
 				sp1->u.link = cmdp;
 			}
@@ -377,14 +380,14 @@ static int cmdcomp(char cchar)
 			break;
 		}
 		fp = gettext(lab->name = fp);	/* else get label into pool */
-		if (lpt = search(lab))		/* enter branch to it */
+		if ((lpt = search(lab)))	/* enter branch to it */
 		{
 			if (lpt->address)
 				cmdp->u.link = lpt->address;
 			else
 			{
 				sp1 = lpt->last;
-				while(sp2 = sp1->u.link)
+				while((sp2 = sp1->u.link))
 					sp1 = sp2;
 				sp1->u.link = cmdp;
 			}
@@ -555,7 +558,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	brnestp = brnest;		/* initialize ptr to brnest array */
 	tags = bcount = 0;		/* initialize counters */
 
-	if (*ep++ = (*sp == '^'))	/* check for start-of-line syntax */
+	if ((*ep++ = (*sp == '^')))	/* check for start-of-line syntax */
 		sp++;
 
 	for (;;)
@@ -656,7 +659,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			if (ep + 17 >= expbuf + RELIMIT)
 				die(REITL);
 			*ep++ = CCL;		/* insert class mark */
-			if (negclass = ((c = *sp++) == '^'))
+			if ((negclass = ((c = *sp++) == '^')))
 				c = *sp++;
 			svclass = sp;		/* save ptr to class start */
 			do {
@@ -709,12 +712,14 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 				/* handle escape sequences in sets */
 				if (c == '\\')
+				{
 					if ((c = *sp++) == 'n')
 						c = '\n';
 					else if (c == 't')
 						c = '\t';
 					else if (c == 'r')
 						c = '\r';
+				}
 
 				/* enter (possibly translated) char in set */
 				if (c)
@@ -759,7 +764,7 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 
 			/* else transcribe next e argument into cbuf */
 			p = *++eargv;
-			while(*++cbuf = *p++)
+			while((*++cbuf = *p++))
 				if (*cbuf == '\\')
 				{
 					if ((*++cbuf = *p++) == '\0')
@@ -781,7 +786,7 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 		if ((p = savep) == NULL)
 			return(-1);
 
-		while(*++cbuf = *p++)
+		while((*++cbuf = *p++))
 			if (*cbuf == '\\')
 			{
 				if ((*++cbuf = *p++) == '0')
@@ -889,7 +894,7 @@ static void resolve(void)			/* uses global lablst */
 		else if (lptr->last)		/* if last is non-null */
 		{
 			rptr = lptr->last;		/* chase it */
-			while(trptr = rptr->u.link)	/* resolve refs */
+			while((trptr = rptr->u.link))	/* resolve refs */
 			{
 				rptr->u.link = lptr->address;
 				rptr = trptr;

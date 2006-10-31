@@ -156,7 +156,7 @@ static int selected(sedcmd *ipc)
 {
 	register char	*p1 = ipc->addr1;	/* point p1 at first address */
 	register char	*p2 = ipc->addr2;	/*   and p2 at second */
-	char		c;
+	unsigned char	c;
 	int selected = FALSE;
 
 	if (ipc->flags.inrange)
@@ -206,7 +206,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 		if (*expbuf)
 			return(FALSE);
 		p1 = linebuf; p2 = genbuf;
-		while (*p1++ = *p2++);
+		while ((*p1++ = *p2++));
 		if (needs_advance) {
 			loc2++;
 		}
@@ -297,7 +297,7 @@ static int advance(char* lp, char* ep, char** eob)
 			return(FALSE);		/* else return false */
 
 		case CBRA:		/* start of tagged pattern */
-			brastart[*ep++] = lp;	/* mark it */
+			brastart[(unsigned char)*ep++] = lp;	/* mark it */
 			continue;		/* and go */
 
 		case CKET:		/* end of tagged pattern */
@@ -307,12 +307,12 @@ static int advance(char* lp, char* ep, char** eob)
 				return (TRUE);
 			}
 			else
-				bracend[*ep++] = lp;    /* mark it */
+				bracend[(unsigned char)*ep++] = lp;    /* mark it */
 			continue;		/* and go */
 
 		case CBACK:		/* match back reference */
-			bbeg = brastart[*ep];
-			ct = bracend[*ep++] - bbeg;
+			bbeg = brastart[(unsigned char)*ep];
+			ct = bracend[(unsigned char)*ep++] - bbeg;
 
 			if (memcmp(bbeg, lp, ct) == 0)
 			{
@@ -327,12 +327,12 @@ static int advance(char* lp, char* ep, char** eob)
 			curlp = lp;
 
 			if (*ep > bcount)
-				brastart[*ep] = bracend[*ep] = lp;
+				brastart[(unsigned char)*ep] = bracend[(unsigned char)*ep] = lp;
 
 			while (advance(lastlp=lp, ep+1, &lp)) {
 				if (*ep > bcount && lp != lastlp) {
-					bracend[*ep] = lp;    /* mark it */
-					brastart[*ep] = lastlp;
+					bracend[(unsigned char)*ep] = lp;    /* mark it */
+					brastart[(unsigned char)*ep] = lastlp;
 				}
 				if (lp == lastlp) break;
 			}
@@ -350,8 +350,8 @@ static int advance(char* lp, char* ep, char** eob)
 			goto star;
 		}
 		case CBACK|STAR:	/* \n* */
-			bbeg = brastart[*ep];
-			ct = bracend[*ep++] - bbeg;
+			bbeg = brastart[(unsigned char)*ep];
+			ct = bracend[(unsigned char)*ep++] - bbeg;
 			curlp = lp;
 			while(memcmp(bbeg, lp, ct) == 0)
 				lp += ct;
@@ -436,7 +436,7 @@ static int advance(char* lp, char* ep, char** eob)
    ipc:	ptr to s command struct */
 static int substitute(sedcmd *ipc)
 {
-	int n = 1;
+	unsigned int n = 1;
 	/* find a match */
 	/* the needs_advance code got a bit tricky - might needs a clean
 	   refactoring */
@@ -474,7 +474,7 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 	lp = linebuf; sp = genbuf;
 	while (lp < loc1) *sp++ = *lp++;
 
-	for (rp = rhsbuf; c = *rp++; )
+	for (rp = rhsbuf; (c = *rp++); )
 	{
 		if (c & 0200 && (c & 0177) == '0')
 		{
@@ -493,11 +493,11 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
-	while (*sp++ = *lp++)
+	while ((*sp++ = *lp++))
 		if (sp >= genbuf + MAXBUF)
 			fprintf(stderr, LTLMSG);
 	lp = linebuf; sp = genbuf;
-	while (*lp++ = *sp++);
+	while ((*lp++ = *sp++));
 	spend = lp-1;
 }
 
@@ -594,10 +594,10 @@ static void command(sedcmd *ipc)
 	case CDCMD:		/* delete a line in hold space */
 		p1 = p2 = linebuf;
 		while(*p1 != '\n')
-			if (delete = (*p1++ == 0))
+			if ((delete = (*p1++ == 0)))
 				return;
 		p1++;
-		while(*p2++ = *p1++) continue;
+		while((*p2++ = *p1++)) continue;
 		spend = p2-1;
 		jump++;
 		break;
@@ -607,7 +607,7 @@ static void command(sedcmd *ipc)
 		break;
 
 	case GCMD:		/* copy hold space to pattern space */
-		p1 = linebuf;	p2 = holdsp;	while(*p1++ = *p2++);
+		p1 = linebuf;	p2 = holdsp;	while((*p1++ = *p2++));
 		spend = p1-1;
 		break;
 
@@ -620,14 +620,13 @@ static void command(sedcmd *ipc)
 				p1[-1] = 0;
   				break;
 			}
-		} while
-		    (*p1++ = *p2++);
+		} while((*p1++ = *p2++));
 
 		spend = p1-1;
 		break;
 
 	case HCMD:		/* copy pattern space to hold space */
-		p1 = holdsp;	p2 = linebuf;	while(*p1++ = *p2++);
+		p1 = holdsp;	p2 = linebuf;	while((*p1++ = *p2++));
 		hspend = p1-1;
 		break;
 
@@ -640,8 +639,7 @@ static void command(sedcmd *ipc)
 				p1[-1] = 0;
   				break;
 			}
-		} while
-		    (*p1++ = *p2++);
+		} while((*p1++ = *p2++));
 
 		hspend = p1-1;
 		break;
@@ -718,10 +716,12 @@ static void command(sedcmd *ipc)
 	case SCMD:		/* substitute RE */
 		didsub = substitute(ipc);
 		if (ipc->flags.print && didsub)
+		{
 			if (ipc->flags.print == TRUE)
 				puts(linebuf);
 			else
 				goto cpcom;
+		}
 		if (didsub && ipc->fout)
 			fprintf(ipc->fout, "%s\n", linebuf);
 		break;
@@ -745,16 +745,16 @@ static void command(sedcmd *ipc)
 		break;
 
 	case XCMD:		/* exchange pattern and hold spaces */
-		p1 = linebuf;	p2 = genbuf;	while(*p2++ = *p1++) continue;
-		p1 = holdsp;	p2 = linebuf;	while(*p2++ = *p1++) continue;
+		p1 = linebuf;	p2 = genbuf;	while((*p2++ = *p1++)) continue;
+		p1 = holdsp;	p2 = linebuf;	while((*p2++ = *p1++)) continue;
 		spend = p2 - 1;
-		p1 = genbuf;	p2 = holdsp;	while(*p2++ = *p1++) continue;
+		p1 = genbuf;	p2 = holdsp;	while((*p2++ = *p1++)) continue;
 		hspend = p2 - 1;
 		break;
 
 	case YCMD:
 		p1 = linebuf;	p2 = ipc->u.lhs;
-		while(*p1 = p2[*p1])
+		while((*p1 = p2[(unsigned char)*p1]))
 			p1++;
 		break;
 	}
