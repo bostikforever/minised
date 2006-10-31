@@ -82,7 +82,7 @@ static char	RETER[] = "RE not terminated: %s";
 static char	CCERR[] = "unknown character class: %s";
 
 /* cclass to c function mapping ,-) */
-char* cclasses[] = {
+const char* cclasses[] = {
 	"alnum", "a-zA-Z0-9",
 	"lower", "a-z",
 	"space", " \f\n\r\t\v",
@@ -312,7 +312,7 @@ static void compile(void)
 static int cmdcomp(char cchar)
 {
 	static sedcmd	**cmpstk[MAXDEPTH];	/* current cmd stack for {} */
-	static char	*fname[WFILES];		/* w file name pointers */
+	static const char *fname[WFILES];	/* w file name pointers */
 	static FILE	*fout[WFILES];		/* w file file ptrs */
 	static int	nwfiles	= 2;		/* count of open w files */
 	int		i;			/* indexing dummy used in w */
@@ -461,7 +461,8 @@ static int cmdcomp(char cchar)
 	case 'w':	/* write-pattern-space command */
 	case 'W':	/* write-first-line command */
 		if (nwfiles >= WFILES) die(TMWFI);
-		fp=gettext(fname[nwfiles]=fp);	/* filename will be in pool */
+		fname[nwfiles] = fp;
+		fp = gettext((fname[nwfiles] = fp, fp));	/* filename will be in pool */
 		for(i = nwfiles-1; i >= 0; i--)	/* match it in table */
 			if (strcmp(fname[nwfiles], fname[i]) == 0)
 			{
@@ -668,13 +669,15 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 				if (c == '[' && *sp == ':')
 				{
 				  /* look for the matching ":]]" */
-				  char *p, *p2;
+				  char *p;
+				  const char *p2;
 				  for (p = sp+3; *p; p++)
 				    if  (*p == ']' &&
 				         *(p-1) == ']' &&
 					 *(p-2) == ':')
 					{
-					  char cc[8], **it;
+					  char cc[8];
+					  const char **it;
 					  p2 = sp+1;
 					  for (p2 = sp+1;
 					       p2 < p-2 && p2-sp-1 < sizeof(cc);
