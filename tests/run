@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 verbose=1
 time=0
@@ -21,7 +21,7 @@ tmp=`mktemp`
 errors=0
 
 for x in *.sed ; do
-	x=${x/.sed/}
+	x=${x%.sed}
 	echo -n "Running test $x ..."
 	$1 -f $x.sed $x.in > $tmp 2>&1
 	error=$?
@@ -46,7 +46,7 @@ if [ $errors -ne 0 ]; then
 elif [ $time -ne 0 ]; then
 	echo "Timing:"
 	time for x in *.sed ; do
-		x=${x/.sed/}
+		x=${x%.sed}
 		echo -n . >&2
 		$1 -f $x.sed $x.in > $tmp
 	done
