@@ -2,7 +2,7 @@
 
 # If your compiler does not support this flags, just remove them.
 # They only ensure that no new warning regressions make it into the source.
-CFLAGS = -Wall -Wwrite-strings
+CFLAGS += -Wall -Wwrite-strings
 
 DESTDIR=
 PREFIX=/usr
