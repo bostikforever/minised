@@ -1,6 +1,6 @@
 /* sedexec.c -- axecute compiled form of stream editor commands
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2006 Rene Rebe
+   Copyright (C) 2004-2009 Rene Rebe
 
    The single entry point of this module is the function execute(). It
 may take a string argument (the name of a file to be used as text)  or
@@ -65,7 +65,7 @@ static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
 static char	*brastart[MAXTAGS];	/* tagged pattern end pointers */
 
 /* prototypes */
-static char *getline(char *buf, int max);
+static char *sed_getline(char *buf, int max);
 static char *place(char* asp, char* al1, char* al2);
 static int advance(char* lp, char* ep, char** eob);
 static int match(char *expbuf, int gf);
@@ -100,7 +100,7 @@ void execute(char* file)
 	for(;;)
 	{
 		/* get next line to filter */
-		if ((execp = getline(linebuf, MAXBUF+1)) == BAD)
+		if ((execp = sed_getline(linebuf, MAXBUF+1)) == BAD)
 			return;
 		spend = execp;
 
@@ -663,7 +663,7 @@ static void command(sedcmd *ipc)
 			puts(linebuf);	/* flush out the current line */
 		if (aptr > appends)
 			readout();	/* do pending a, r commands */
-		if ((execp = getline(linebuf, MAXBUF+1)) == BAD)
+		if ((execp = sed_getline(linebuf, MAXBUF+1)) == BAD)
 		{
 			pending = ipc;
 			delete = TRUE;
@@ -676,8 +676,8 @@ static void command(sedcmd *ipc)
 		if (aptr > appends)
 			readout();
 		*spend++ = '\n';
-		if ((execp = getline(spend,
-		                     linebuf + MAXBUF+1 - spend)) == BAD)
+		if ((execp = sed_getline(spend,
+		                         linebuf + MAXBUF+1 - spend)) == BAD)
 		{
 			pending = ipc;
 			delete = TRUE;
@@ -763,7 +763,7 @@ static void command(sedcmd *ipc)
 /* get next line of text to be filtered
    buf: where to send the input
    max: max chars to read */
-static char *getline(char *buf, int max)
+static char *sed_getline(char *buf, int max)
 {
 	if (fgets(buf, max, stdin) != NULL)
 	{
