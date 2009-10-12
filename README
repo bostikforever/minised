@@ -61,6 +61,10 @@ The 1.12 version fixed the l(ist) command to actually work, some tiny
 optimizations have been performed as well as some more compiler warnings
 fixed.
 
+The 1.13 version address some pedantic compiler warnings, improves
+the Makefile and renamed the getline() function, as glibc-2.10
+introduced its own.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
