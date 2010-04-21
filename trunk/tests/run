@@ -17,12 +17,12 @@ if [ -z "$1" ]; then
 	exit
 fi
 
-tmp=`mktemp`
+tmp=`mktemp || mktemp -t tmp.XXXXXXXXXX`
 errors=0
 
-for x in *.sed ; do
+for x in *.sed; do
 	x=${x%.sed}
-	echo -n "Running test $x ..."
+	printf "Running test $x ..."
 	$1 -f $x.sed $x.in > $tmp 2>&1
 	error=$?
 
@@ -31,7 +31,7 @@ for x in *.sed ; do
 	elif [ ! -f $x.out ]; then
 		echo " Passed (unexpected)"
 		: $((errors++))
-	elif cmp $tmp $x.out 2>&1 >/dev/null ; then
+	elif cmp $tmp $x.out 2>&1 >/dev/null; then
 		echo " Passed"
 	else
 		echo " Failed !!!"
@@ -53,4 +53,3 @@ elif [ $time -ne 0 ]; then
 fi
 
 rm -f $tmp
-
