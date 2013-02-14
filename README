@@ -65,7 +65,8 @@ The 1.13 version address some pedantic compiler warnings, improves
 the Makefile and renamed the getline() function, as glibc-2.10
 introduced its own.
 
-The 1.14 version just fixes a C++-style comment.
+The 1.14 version fixes a C++-style comment, and clarifies the license
+as BSD-like in agreement with Eric S. Raymond.
 
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
