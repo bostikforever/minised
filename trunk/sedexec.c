@@ -1,6 +1,6 @@
 /* sedexec.c -- axecute compiled form of stream editor commands
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2009 Rene Rebe
+   Copyright (C) 2004-2013 Rene Rebe
 
    The single entry point of this module is the function execute(). It
 may take a string argument (the name of a file to be used as text)  or
@@ -346,7 +346,7 @@ static int advance(char* lp, char* ep, char** eob)
 			needs_advance = 1;
 			if (lp == curlp) /* 0 matches */
 				continue;
-			lp++; // because the star handling decrements it
+			lp++; /* because the star handling decrements it */
 			goto star;
 		}
 		case CBACK|STAR:	/* \n* */
