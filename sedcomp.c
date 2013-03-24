@@ -441,7 +441,7 @@ static int cmdcomp(char cchar)
 			IFEQ(cp, 'g') cmdp->flags.global++;
 			IFEQ(cp, 'p') cmdp->flags.print = 1;
 			IFEQ(cp, 'P') cmdp->flags.print = 2;
-			if(isdigit(*cp))
+			if (isdigit(*cp))
 			{
 				if (cmdp->nth)
 					break; /* no multiple n args */
@@ -586,7 +586,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			if ((c = *sp++) == '(')	/* start tagged section */
 			{
 				if (bcount >= MAXTAGS)
-					return cp = sp, BA);
+					return cp = sp, BAD;
 				*brnestp++ = bcount;	/* update tag stack */
 				*ep++ = CBRA;		/* enter tag-start */
 				*ep++ = bcount++;	/* bump tag count */

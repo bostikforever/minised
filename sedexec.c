@@ -223,7 +223,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	if (*p2++)
 	{
 		loc1 = p1;
-		if(*p2 == CCHR && p2[1] != *p1)	/* 1st char is wrong */
+		if (*p2 == CCHR && p2[1] != *p1)	/* 1st char is wrong */
 			return FALSE;		/*   so fail */
 		return advance(p1, p2, NULL);	/* else try to match rest */
 	}
