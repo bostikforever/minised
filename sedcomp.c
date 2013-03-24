@@ -1,6 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2006 Rene Rebe
+   Copyright (C) 2004-2013 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
@@ -333,13 +333,13 @@ static int cmdcomp(char cchar)
 		cmpstk[bdepth++] = &(cmdp->u.link);
 		if (++cmdp >= cmds + MAXCMDS) die(TMCDS);
 		if (*cp == '\0') *cp++ = ';', *cp = '\0';	/* get next cmd w/o lineread */
-		return(1);
+		return 1;
 
 	case '}':	/* end command group */
 		if (cmdp->addr1) die(AD1NG);	/* no addresses allowed */
 		if (--bdepth < 0) die(TMRBR);	/* too many right braces */
 		*cmpstk[bdepth] = cmdp;		/* set the jump address */
-		return(1);
+		return 1;
 
 	case '=':			/* print current source line number */
 	case 'q':			/* exit the stream editor */
@@ -360,7 +360,7 @@ static int cmdcomp(char cchar)
 			if (++lab >= labels + MAXLABS) die(TMLAB);
 		}
 		lpt->address = cmdp;
-		return(1);
+		return 1;
 
 	case 'b':	/* branch command */
 	case 't':	/* branch-on-succeed command */
@@ -467,7 +467,7 @@ static int cmdcomp(char cchar)
 			if (strcmp(fname[nwfiles], fname[i]) == 0)
 			{
 				cmdp->fout = fout[i];
-				return(0);
+				return 0;
 			}
 		/* if didn't find one, open new out file */
 		if ((cmdp->fout = fopen(fname[nwfiles], "w")) == NULL)
@@ -484,7 +484,7 @@ static int cmdcomp(char cchar)
 		if (fp > poolend) die(TMTXT);		/* fail on overflow */
 		break;
 	}
-	return(0);	/* succeeded in interpreting one command */
+	return 0;	/* succeeded in interpreting one command */
 }
 
 /* generate replacement string for substitute command right hand side
@@ -504,7 +504,7 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 				*rhsp = *p++;
 				/* check validity of pattern tag */
 				if (*rhsp > bcount + '0')
-					return(BAD);
+					return BAD;
 				*rhsp++ |= 0x80; /* mark the good ones */
 			}
 			else /* escape */
@@ -522,7 +522,7 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 		{
 			*rhsp++ = '\0';		/* cap the expression string */
 			cp = p;
-			return(rhsp);		/* pt at 1 past the RE */
+			return rhsp;		/* pt at 1 past the RE */
 		}
 		else if (*rhsp == '&')		/* special case, convert to backref \0 */
 		{
@@ -530,7 +530,7 @@ static char *rhscomp(char* rhsp, char delim)	/* uses bcount */
 			goto dobackref;
 		}
 		else if (*rhsp++ == '\0')	/* last ch not RE end, help! */
-			return(BAD);
+			return BAD;
 }
 
 /* compile a regular expression to internal form
@@ -552,7 +552,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 	int		tags;		/* # of closed tags */
 
 	if (*cp == redelim) {		/* if first char is RE endmarker */
-	    return(ep);
+	    return ep;
 	}
 
 	lastep = lastep2 = NULL;	/* there's no previous RE */
@@ -567,14 +567,14 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 		if (*sp == 0) /* no termination */
 			die (RETER);
 		if (ep >= expbuf + RELIMIT)	/* match is too large */
-			return(cp = sp, BAD);
+			return cp = sp, BAD;
 		if ((c = *sp++) == redelim)	/* found the end of the RE */
 		{
 			cp = sp;
 			if (brnestp != brnest)	/* \(, \) unbalanced */
-				return(BAD);
+				return BAD;
 			*ep++ = CEOF;		/* write end-of-pattern mark */
-			return(ep);		/* return ptr to compiled RE */
+			return ep;		/* return ptr to compiled RE */
 		}
 
 		lastep = lastep2;
@@ -586,7 +586,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			if ((c = *sp++) == '(')	/* start tagged section */
 			{
 				if (bcount >= MAXTAGS)
-					return(cp = sp, BAD);
+					return cp = sp, BA);
 				*brnestp++ = bcount;	/* update tag stack */
 				*ep++ = CBRA;		/* enter tag-start */
 				*ep++ = bcount++;	/* bump tag count */
@@ -596,7 +596,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			else if (c == ')')	/* end tagged section */
 			{
 				if (brnestp <= brnest)	/* extra \) */
-					return(cp = sp, BAD);
+					return cp = sp, BAD;
 				*ep++ = CKET;		/* enter end-of-tag */
 				*ep++ = *--brnestp;	/* pop tag stack */
 				tags++;			/* count closed tags */
@@ -607,13 +607,13 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			else if (c >= '1' && c <= '9' && c != redelim)	/* tag use, if !delim */
 			{
 				if ((c -= '1') >= tags)	/* too few */
-					return(BAD);
+					return BAD;
 				*ep++ = CBACK;		/* enter tag mark */
 				*ep++ = c;		/* and the number */
 				continue;
 			}
 			else if (c == '\n')	/* escaped newline no good */
-				return(cp = sp, BAD);
+				return cp = sp, BAD;
 			else if (c == 'n')		/* match a newline */
 				c = '\n';
 			else if (c == 't')		/* match a tab */
@@ -637,7 +637,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			continue;
 
 		case '\n':	/* trailing pattern delimiter is missing */
-			return(cp = sp, BAD);
+			return cp = sp, BAD;
 
 		case '.':	/* match any char except newline */
 			*ep++ = CDOT;
@@ -771,39 +771,39 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 				if (*cbuf == '\\')
 				{
 					if ((*++cbuf = *p++) == '\0')
-						return(savep = NULL, -1);
+						return savep = NULL, -1;
 					else
 						continue;
 				}
 				else if (*cbuf == '\n')	/* end of 1 cmd line */
 				{ 
 					*cbuf = '\0';
-					return(savep = p, 1);
+					return savep = p, 1;
 					/* we'll be back for the rest... */
 				}
 
 			/* found end-of-string; can advance to next argument */
-			return(savep = NULL, 1);
+			return savep = NULL, 1;
 		}
 
 		if ((p = savep) == NULL)
-			return(-1);
+			return -1;
 
 		while((*++cbuf = *p++))
 			if (*cbuf == '\\')
 			{
 				if ((*++cbuf = *p++) == '0')
-					return(savep = NULL, -1);
+					return savep = NULL, -1;
 				else
 					continue;
 			}
 			else if (*cbuf == '\n')
 			{
 				*cbuf = '\0';
-				return(savep = p, 1);
+				return savep = p, 1;
 			}
 
-		return(savep = NULL, 1);
+		return savep = NULL, 1;
 	}
 
 	/* if no -e flag read from command file descriptor */
@@ -811,9 +811,9 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 		if ((*++cbuf = inc) == '\\')		/* if it's escape */ 
 			*++cbuf = inc = getc(cmdf);	/* get next char */
 		else if (*cbuf == '\n')			/* end on newline */
-			return(*cbuf = '\0', 1);	/* cap the string */
+			return *cbuf = '\0', 1;	/* cap the string */
 
-	return(*++cbuf = '\0', -1);	/* end-of-file, no more chars */
+	return *++cbuf = '\0', -1;	/* end-of-file, no more chars */
 }
 
 /* expand an address at *cp... into expbuf, return ptr at following char */
@@ -829,10 +829,10 @@ static char *address(char *expbuf)		/* uses cp, linenum */
 		*expbuf++ = CEOF;	/* and the end-of-address mark (!) */
 		cp++;			/* go to next source character */
 		last_line_used = TRUE;
-		return(expbuf);		/* we're done */
+		return expbuf;		/* we're done */
 	}
 	if (*cp == '/')			/* start of regular-expression match */
-		return(recomp(expbuf, *cp++));	/* compile the RE */
+		return recomp(expbuf, *cp++);	/* compile the RE */
 
 	rcp = cp; lno = 0;		/* now handle a numeric address */
 	while(*rcp >= '0' && *rcp <= '9')	/* collect digits */
@@ -847,10 +847,10 @@ static char *address(char *expbuf)		/* uses cp, linenum */
 			die(TMLNR);	/*   abort with error message */
 		*expbuf++ = CEOF;	/* write the end-of-address marker */
 		cp = rcp;		/* point compile past the address */ 
-		return(expbuf);		/* we're done */
+		return expbuf;		/* we're done */
 	}
 
-	return(NULL);		/* no legal address was found */
+	return NULL;		/* no legal address was found */
 }
 
 /* accept multiline input from *cp..., discarding leading whitespace
@@ -864,11 +864,11 @@ static char *gettext(char* txp)		/* uses global cp */
 		if ((*txp = *p++) == '\\')	/* handle escapes */
 			*txp = *p++;
 		if (*txp == '\0')		/* we're at end of input */
-			return(cp = --p, ++txp);
+			return cp = --p, ++txp;
 		else if (*txp == '\n')		/* also SKIPWS after newline */
 			SKIPWS(p);
 	} while (txp++);		/* keep going till we find that nul */
-	return(txp);
+	return txp;
 }
 
 /* find the label matching *ptr, return NULL if none */
@@ -877,8 +877,8 @@ static label *search(label *ptr)		/* uses global lablst */
 	register label	*rp;
 	for(rp = lablst; rp < ptr; rp++)
 		if ((rp->name != NULL) && (strcmp(rp->name, ptr->name) == 0))
-			return(rp);
-	return(NULL);
+			return rp;
+	return NULL;
 }
 
 /* write label links into the compiled-command space */
@@ -920,7 +920,7 @@ static char *ycomp(char *ep, char delim)
 		if (*tp == '\\')
 			tp++;
 		if ((*tp == '\n') || (*tp == '\0'))
-			return(BAD);
+			return BAD;
 	}
 	tp++;		/* tp now points at first char of 'to' section */
 
@@ -938,11 +938,11 @@ static char *ycomp(char *ep, char delim)
 			tp++;
 		}
 		if ((ep[c] == delim) || (ep[c] == '\0'))
-			return(BAD);
+			return BAD;
 	}
 
 	if (*tp != delim)	/* 'to', 'from' parts have unequal lengths */
-		return(BAD);
+		return BAD;
 
 	cp = ++tp;			/* point compile ptr past translit */
 
@@ -950,7 +950,7 @@ static char *ycomp(char *ep, char delim)
 		if (ep[c] == 0)
 			ep[c] = c;
 
-	return(ep + 0x80);	/* return first free location past table end */
+	return ep + 0x80;	/* return first free location past table end */
 }
 
 /* sedcomp.c ends here */

@@ -204,7 +204,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	if (gf)
 	{
 		if (*expbuf)
-			return(FALSE);
+			return FALSE;
 		p1 = linebuf; p2 = genbuf;
 		while ((*p1++ = *p2++));
 		if (needs_advance) {
@@ -224,8 +224,8 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	{
 		loc1 = p1;
 		if(*p2 == CCHR && p2[1] != *p1)	/* 1st char is wrong */
-			return(FALSE);		/*   so fail */
-		return(advance(p1, p2, NULL));	/* else try to match rest */
+			return FALSE;		/*   so fail */
+		return advance(p1, p2, NULL);	/* else try to match rest */
 	}
 
 	/* quick check for 1st character if it's literal */
@@ -236,21 +236,21 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 			if (*p1 != c)
 				continue;	/* scan the source string */
 			if (advance(p1, p2,NULL)) /* found it, match the rest */
-				return(loc1 = p1, 1);
+				return loc1 = p1, 1;
 		} while
 			(*p1++);
-		return(FALSE);		/* didn't find that first char */
+		return FALSE;		/* didn't find that first char */
 	}
 
 	/* else try for unanchored match of the pattern */
 	do {
 		if (advance(p1, p2, NULL))
-			return(loc1 = p1, 1);
+			return loc1 = p1, 1;
 	} while
 		(*p1++);
 
 	/* if got here, didn't match either way */
-	return(FALSE);
+	return FALSE;
 }
 
 /* attempt to advance match pointer by one pattern element
@@ -270,22 +270,22 @@ static int advance(char* lp, char* ep, char** eob)
 		case CCHR:		/* literal character */
 			if (*ep++ == *lp++)	/* if chars are equal */
 				continue;	/* matched */
-			return(FALSE);		/* else return false */
+			return FALSE;		/* else return false */
 
 		case CDOT:		/* anything but newline */
 			if (*lp++)		/* first NUL is at EOL */
 				continue;	/* keep going if didn't find */
-			return(FALSE);		/* else return false */
+			return FALSE;		/* else return false */
 
 		case CNL:		/* start-of-line */
 		case CDOL:		/* end-of-line */
 			if (*lp == 0)		/* found that first NUL? */
 				continue;	/* yes, keep going */
-			return(FALSE);		/* else return false */
+			return FALSE;		/* else return false */
 
 		case CEOF:		/* end-of-address mark */
 			loc2 = lp;		/* set second loc */
-			return(TRUE);		/* return true */
+			return TRUE;		/* return true */
 
 		case CCL:		/* a closure */
 			c = *lp++ & 0177;
@@ -294,7 +294,7 @@ static int advance(char* lp, char* ep, char** eob)
 				ep += 16;	/* then skip rest of bitmask */
 				continue;	/*   and keep going */
 			}
-			return(FALSE);		/* else return false */
+			return FALSE;		/* else return false */
 
 		case CBRA:		/* start of tagged pattern */
 			brastart[(unsigned char)*ep++] = lp;	/* mark it */
@@ -304,7 +304,7 @@ static int advance(char* lp, char* ep, char** eob)
 			bcount = *ep;
 			if (eob) {
 				*eob = lp;
-				return (TRUE);
+				return TRUE;
 			}
 			else
 				bracend[(unsigned char)*ep++] = lp;    /* mark it */
@@ -319,7 +319,7 @@ static int advance(char* lp, char* ep, char** eob)
 				lp += ct;
 				continue;
 			}
-			return(FALSE);
+			return FALSE;
 
 		case CBRA|STAR:		/* \(...\)* */
 		{
@@ -359,10 +359,10 @@ static int advance(char* lp, char* ep, char** eob)
 			while(lp >= curlp)
 			{
 				if (advance(lp, ep, eob))
-					return(TRUE);
+					return TRUE;
 				lp -= ct;
 			}
-			return(FALSE);
+			return FALSE;
 
 		case CDOT|STAR:		/* match .* */
 			curlp = lp;		/* save closure start loc */
@@ -397,10 +397,10 @@ static int advance(char* lp, char* ep, char** eob)
 					if (*lp != c)
 						continue;
 					if (advance(lp, ep, eob))
-						return(TRUE);
+						return TRUE;
 				} while
 				(lp-- > curlp);
-				return(FALSE);
+				return FALSE;
 			}
 
 			if (*ep == CBACK)
@@ -410,10 +410,10 @@ static int advance(char* lp, char* ep, char** eob)
 					if (*lp != c)
 						continue;
 					if (advance(lp, ep, eob))
-						return(TRUE);
+						return TRUE;
 				} while
 					(lp-- > curlp);
-				return(FALSE);
+				return FALSE;
 			}
 #endif
 			/* match followers, try shorter match, if needed */
@@ -421,10 +421,10 @@ static int advance(char* lp, char* ep, char** eob)
 				if (lp == locs)
 					break;
 				if (advance(lp, ep, eob))
-					return(TRUE);
+					return TRUE;
 			} while
 				(lp-- > curlp);
-			return(FALSE);
+			return FALSE;
 
 		default:
 			fprintf(stderr, "sed: internal RE error, %o\n", *--ep);
@@ -450,7 +450,7 @@ static int substitute(sedcmd *ipc)
 		needs_advance = n++;
 	}
 	if (n == 1)
-		return(FALSE);			/* command fails */
+		return FALSE;			/* command fails */
 
 	if (ipc->flags.global)			/* if global flag enabled */
 		do {				/* cycle through possibles */
@@ -460,7 +460,7 @@ static int substitute(sedcmd *ipc)
 			else				/* otherwise, */
 				break;			/* we're done */
 		} while (*loc2);
-	return(TRUE);				/* we succeeded */
+	return TRUE;				/* we succeeded */
 }
 
 /* generate substituted right-hand side (of s command)
@@ -510,10 +510,10 @@ static char *place(char* asp, char* al1, char* al2)		/* uses genbuf */
 		if (asp >= genbuf + MAXBUF)
 			fprintf(stderr, LTLMSG);
 	}
-	return(asp);
+	return asp;
 }
 
-/* list the pattern space in  visually unambiguous form *p1... to fp
+/* list the pattern space in visually unambiguous form *p1... to fp
    p1: the source
    fp: output stream to write to */
 static void listto(char *p1, FILE *fp)
@@ -786,11 +786,11 @@ static char *sed_getline(char *buf, int max)
 		  }
 		}
 
-		return(buf);		/* return ptr to terminating null */ 
+		return buf;		/* return ptr to terminating null */ 
 	}
 	else
 	{
-		return(BAD);
+		return BAD;
 	}
 }
 
