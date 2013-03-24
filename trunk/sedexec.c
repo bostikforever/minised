@@ -57,8 +57,7 @@ static int	lastline;		/* do-line flag */
 static int	line_with_newline;	/* line had newline */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
-static int	needs_advance;		/* needs inc after substitution */
-					/* ugly HACK - neds REWORK */
+static int	needs_advance;		/* HACK/BUG: inc after substitution */
 
 /* tagged-pattern tracking */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
@@ -237,8 +236,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 				continue;	/* scan the source string */
 			if (advance(p1, p2,NULL)) /* found it, match the rest */
 				return loc1 = p1, 1;
-		} while
-			(*p1++);
+		} while (*p1++);
 		return FALSE;		/* didn't find that first char */
 	}
 
@@ -246,8 +244,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	do {
 		if (advance(p1, p2, NULL))
 			return loc1 = p1, 1;
-	} while
-		(*p1++);
+	} while (*p1++);
 
 	/* if got here, didn't match either way */
 	return FALSE;
@@ -379,8 +376,7 @@ static int advance(char* lp, char* ep, char** eob)
 			curlp = lp;		/* save closure start loc */
 			do {
 				c = *lp++ & 0x7F;	/* match any in set */
-			} while
-				(ep[c>>3] & bits(c & 07));
+			} while (ep[c>>3] & bits(c & 07));
 			ep += 16;		/* skip past the set */
 			goto star;		/* match followers */
 
@@ -398,8 +394,7 @@ static int advance(char* lp, char* ep, char** eob)
 						continue;
 					if (advance(lp, ep, eob))
 						return TRUE;
-				} while
-				(lp-- > curlp);
+				} while (lp-- > curlp);
 				return FALSE;
 			}
 
@@ -411,8 +406,7 @@ static int advance(char* lp, char* ep, char** eob)
 						continue;
 					if (advance(lp, ep, eob))
 						return TRUE;
-				} while
-					(lp-- > curlp);
+				} while (lp-- > curlp);
 				return FALSE;
 			}
 #endif
@@ -422,8 +416,7 @@ static int advance(char* lp, char* ep, char** eob)
 					break;
 				if (advance(lp, ep, eob))
 					return TRUE;
-			} while
-				(lp-- > curlp);
+			} while (lp-- > curlp);
 			return FALSE;
 
 		default:
@@ -438,8 +431,7 @@ static int substitute(sedcmd *ipc)
 {
 	unsigned int n = 1;
 	/* find a match */
-	/* the needs_advance code got a bit tricky - might needs a clean
-	   refactoring */
+	/* the needs_advance code got a bit tricky - refactor: try to remove */
 	while (match(ipc->u.lhs, 0)) {
 		/* nth 0 is implied 1 */
 		if (!ipc->nth || n == ipc->nth) {
