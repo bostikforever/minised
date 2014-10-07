@@ -1,6 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2013 Rene Rebe
+   Copyright (C) 2004-2014 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
