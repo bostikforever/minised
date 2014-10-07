@@ -57,7 +57,7 @@ static int	lastline;		/* do-line flag */
 static int	line_with_newline;	/* line had newline */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
-static int	needs_advance;		/* HACK/BUG: inc after substitution */
+static int	needs_advance;		/* HACK/BUG: inc after substitution and n-th match */
 
 /* tagged-pattern tracking */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
@@ -439,7 +439,7 @@ static int substitute(sedcmd *ipc)
 			dosub(ipc->rhs);		/* perform it once */
 			break;
 		}
-		needs_advance = n;
+		needs_advance = loc2 - linebuf;
 	}
 	if (n == 0)
 		return FALSE;			/* command fails */
