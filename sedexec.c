@@ -1,6 +1,6 @@
 /* sedexec.c -- axecute compiled form of stream editor commands
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2013 Rene Rebe
+   Copyright (C) 2004-2014 Rene Rebe
 
    The single entry point of this module is the function execute(). It
 may take a string argument (the name of a file to be used as text)  or
@@ -429,19 +429,19 @@ static int advance(char* lp, char* ep, char** eob)
    ipc:	ptr to s command struct */
 static int substitute(sedcmd *ipc)
 {
-	unsigned int n = 1;
+	unsigned int n = 0;
 	/* find a match */
 	/* the needs_advance code got a bit tricky - refactor: try to remove */
 	while (match(ipc->u.lhs, 0)) {
 		/* nth 0 is implied 1 */
+		n++;
 		if (!ipc->nth || n == ipc->nth) {
 			dosub(ipc->rhs);		/* perform it once */
-			n++;				/* mark for return */
 			break;
 		}
-		needs_advance = n++;
+		needs_advance = n;
 	}
-	if (n == 1)
+	if (n == 0)
 		return FALSE;			/* command fails */
 
 	if (ipc->flags.global)			/* if global flag enabled */
