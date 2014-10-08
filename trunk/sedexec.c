@@ -37,7 +37,7 @@ extern int	last_line_used; /* last line address ($) used */
 #define MAXHOLD		MAXBUF	/* size of the hold space */
 #define GENSIZ		MAXBUF	/* maximum genbuf size */
 
-static char LTLMSG[]	= "sed: line too long\n";
+static const char LTLMSG[]	= "sed: line too long\n";
 
 static char	*spend;		/* current end-of-line-buffer pointer */
 static long	lnum = 0L;	/* current source line number */
