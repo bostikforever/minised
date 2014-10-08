@@ -214,7 +214,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	else
 	{
 		p1 = linebuf + needs_advance;
-		locs = FALSE;
+		locs = NULL;
 	}
 	needs_advance = 0;
 
@@ -234,7 +234,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 		do {
 			if (*p1 != c)
 				continue;	/* scan the source string */
-			if (advance(p1, p2,NULL)) /* found it, match the rest */
+			if (advance(p1, p2, NULL)) /* found it, match the rest */
 				return loc1 = p1, 1;
 		} while (*p1++);
 		return FALSE;		/* didn't find that first char */
