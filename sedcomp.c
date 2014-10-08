@@ -57,32 +57,31 @@ void die (const char* msg) {
 #define IFEQ(x, v)	if (*x == v) x++ , /* do expression */
 
 /* error messages */
-static char	AGMSG[]	= "garbled address %s";
-static char	CGMSG[]	= "garbled command %s";
-static char	TMTXT[]	= "too much text: %s";
-static char	AD1NG[]	= "no addresses allowed for %s";
-static char	AD2NG[]	= "only one address allowed for %s";
-static char	TMCDS[]	= "too many commands, last was %s";
-static char	COCFI[]	= "cannot open command-file %s";
-static char	UFLAG[]	= "unknown flag %c";
-/*static char	COOFI[]	= "cannot open %s";*/
-static char	CCOFI[]	= "cannot create %s";
-static char	ULABL[]	= "undefined label %s";
-static char	TMLBR[]	= "too many {'s";
-static char	FRENL[]	= "first RE must be non-null";
-static char	NSCAX[]	= "no such command as %s";
-static char	TMRBR[]	= "too many }'s";
-static char	DLABL[]	= "duplicate label %s";
-static char	TMLAB[]	= "too many labels: %s";
-static char	TMWFI[]	= "too many w files";
-static char	REITL[]	= "RE too long: %s";
-static char	TMLNR[]	= "too many line numbers";
-static char	TRAIL[]	= "command \"%s\" has trailing garbage";
-static char	RETER[] = "RE not terminated: %s";
-static char	CCERR[] = "unknown character class: %s";
+static const char	AGMSG[]	= "garbled address %s";
+static const char	CGMSG[]	= "garbled command %s";
+static const char	TMTXT[]	= "too much text: %s";
+static const char	AD1NG[]	= "no addresses allowed for %s";
+static const char	AD2NG[]	= "only one address allowed for %s";
+static const char	TMCDS[]	= "too many commands, last was %s";
+static const char	COCFI[]	= "cannot open command-file %s";
+static const char	UFLAG[]	= "unknown flag %c";
+static const char	CCOFI[]	= "cannot create %s";
+static const char	ULABL[]	= "undefined label %s";
+static const char	TMLBR[]	= "too many {'s";
+static const char	FRENL[]	= "first RE must be non-null";
+static const char	NSCAX[]	= "no such command as %s";
+static const char	TMRBR[]	= "too many }'s";
+static const char	DLABL[]	= "duplicate label %s";
+static const char	TMLAB[]	= "too many labels: %s";
+static const char	TMWFI[]	= "too many w files";
+static const char	REITL[]	= "RE too long: %s";
+static const char	TMLNR[]	= "too many line numbers";
+static const char	TRAIL[]	= "command \"%s\" has trailing garbage";
+static const char	RETER[] = "RE not terminated: %s";
+static const char	CCERR[] = "unknown character class: %s";
 
 /* cclass to c function mapping ,-) */
-const char* cclasses[] = {
+static const char* cclasses[] = {
 	"alnum", "a-zA-Z0-9",
 	"lower", "a-z",
 	"space", " \f\n\r\t\v",
