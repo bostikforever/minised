@@ -580,7 +580,7 @@ static void command(sedcmd *ipc)
 		break;
 
 	case DCMD:		/* delete pattern space */
-		delete++;
+		delete = TRUE;
 		break;
 
 	case CDCMD:		/* delete a line in hold space */
