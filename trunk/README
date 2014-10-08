@@ -68,6 +68,9 @@ introduced its own.
 The 1.14 version fixes a C++-style comment, and clarifies the license
 as BSD-like in agreement with Eric S. Raymond.
 
+The 1.15 version fixes some Kleene star operator relates bugs and
+includes some code cleanups.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
