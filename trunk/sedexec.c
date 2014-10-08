@@ -57,7 +57,6 @@ static int	lastline;		/* do-line flag */
 static int	line_with_newline;	/* line had newline */
 static int	jump;			/* jump to cmd's link address if set */
 static int	delete;			/* delete command flag */
-static int	needs_advance;		/* HACK/BUG: inc after substitution and n-th match */
 
 /* tagged-pattern tracking */
 static char	*bracend[MAXTAGS];	/* tagged pattern start pointers */
@@ -196,28 +195,26 @@ static int selected(sedcmd *ipc)
 }
 
 /* match RE at expbuf against linebuf; if gf set, copy linebuf from genbuf */
-static int match(char *expbuf, int gf)	/* uses genbuf */
+static int _match(char *expbuf, int gf)	/* uses genbuf */
 {
 	char *p1, *p2, c;
 
-	if (gf)
+	if (!gf)
+	{
+		p1 = linebuf;
+		locs = NULL;
+	}
+	else
 	{
 		if (*expbuf)
 			return FALSE;
-		p1 = linebuf; p2 = genbuf;
-		while ((*p1++ = *p2++));
-		if (needs_advance) {
+		/* if the last match was zero length, continue to next */
+		if (loc2 - loc1 == 0) {
 			loc2++;
 		}
 		locs = p1 = loc2;
 	}
-	else
-	{
-		p1 = linebuf + needs_advance;
-		locs = NULL;
-	}
-	needs_advance = 0;
-
+	
 	p2 = expbuf;
 	if (*p2++)
 	{
@@ -235,7 +232,7 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 			if (*p1 != c)
 				continue;	/* scan the source string */
 			if (advance(p1, p2, NULL)) /* found it, match the rest */
-				return loc1 = p1, 1;
+				return loc1 = p1, TRUE;
 		} while (*p1++);
 		return FALSE;		/* didn't find that first char */
 	}
@@ -243,11 +240,24 @@ static int match(char *expbuf, int gf)	/* uses genbuf */
 	/* else try for unanchored match of the pattern */
 	do {
 		if (advance(p1, p2, NULL))
-			return loc1 = p1, 1;
+			return loc1 = p1, TRUE;
 	} while (*p1++);
 
 	/* if got here, didn't match either way */
 	return FALSE;
+}
+
+static int match(char *expbuf, int gf)	/* uses genbuf */
+{
+	const char *loc2i = loc2;
+	const int ret = _match(expbuf, gf);
+	
+	/* if last match was zero length, do not allow a follpwing zero match */
+	if (loc2i && loc1 == loc2i && loc2 - loc1 == 0) {
+		loc2++;
+		return _match(expbuf, gf);
+	}
+	return ret;
 }
 
 /* attempt to advance match pointer by one pattern element
@@ -340,7 +350,6 @@ static int advance(char* lp, char* ep, char** eob)
 				ep++;
 			ep+=2;
 
-			needs_advance = 1;
 			if (lp == curlp) /* 0 matches */
 				continue;
 			lp++; /* because the star handling decrements it */
@@ -381,7 +390,6 @@ static int advance(char* lp, char* ep, char** eob)
 			goto star;		/* match followers */
 
 		star:		/* the recursion part of a * or + match */
-			needs_advance = 1;
 			if (--lp == curlp) {	/* 0 matches */
 				continue;
 			}
@@ -431,15 +439,13 @@ static int substitute(sedcmd *ipc)
 {
 	unsigned int n = 0;
 	/* find a match */
-	/* the needs_advance code got a bit tricky - refactor: try to remove */
-	while (match(ipc->u.lhs, 0)) {
+	while (match(ipc->u.lhs, n /* use last loc2 for n>0 */)) {
 		/* nth 0 is implied 1 */
 		n++;
 		if (!ipc->nth || n == ipc->nth) {
 			dosub(ipc->rhs);		/* perform it once */
 			break;
 		}
-		needs_advance = loc2 - linebuf;
 	}
 	if (n == 0)
 		return FALSE;			/* command fails */
@@ -466,6 +472,7 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 	lp = linebuf; sp = genbuf;
 	while (lp < loc1) *sp++ = *lp++;
 
+	/* substitute */
 	for (rp = rhsbuf; (c = *rp++); )
 	{
 		if (c & 0200 && (c & 0177) == '0')
@@ -483,8 +490,14 @@ static void dosub(char *rhsbuf)		/* uses linebuf, genbuf, spend */
 			fprintf(stderr, LTLMSG);
 
 	}
+
+	/* adjust location pointers and copy reminder */
 	lp = loc2;
-	loc2 = sp - genbuf + linebuf;
+	{
+		long len = loc2 - loc1;
+		loc2 = sp - genbuf + linebuf;
+		loc1 = loc2 - len;
+	}
 	while ((*sp++ = *lp++))
 		if (sp >= genbuf + MAXBUF)
 			fprintf(stderr, LTLMSG);
@@ -561,7 +574,6 @@ static void command(sedcmd *ipc)
 	register char	*p1, *p2;
 	char		*execp;
 
-	needs_advance = 0;
 	switch(ipc->command)
 	{
 	case ACMD:		/* append */
