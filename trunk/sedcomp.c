@@ -1,6 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2014 Rene Rebe
+   Copyright (C) 2004-2017 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
@@ -679,7 +679,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 					  const char **it;
 					  p2 = sp+1;
 					  for (p2 = sp+1;
-					       p2 < p-2 && p2-sp-1 < sizeof(cc);
+					       p2 < p-2 && p2-sp-1 < sizeof(cc) - 1;
 					       p2++)
 					    cc[p2-sp-1] = *p2;
 					  cc[p2-sp-1] = 0; /* termination */
