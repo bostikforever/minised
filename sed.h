@@ -1,6 +1,6 @@
 /* sed.h -- types and constants for the stream editor
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2005 Rene Rebe
+   Copyright (C) 2004-2017 Rene Rebe
 */
 
 #define TRUE            1
@@ -9,8 +9,8 @@
 /* data area sizes used by both modules */
 #define MAXBUF		4000	/* current line buffer size */
 #define MAXAPPENDS	20	/* maximum number of appends */
-#define MAXTAGS		9	/* tagged patterns are \1 to \9 */
-#define MAXCMDS		200	/* maximum number of compiled commands */
+#define MAXTAGS	9	/* tagged patterns are \1 to \9 */
+#define MAXCMDS	200	/* maximum number of compiled commands */
 #define MAXLINES	256	/* max # numeric addresses to compile */ 
 
 /* constants for compiled-command representation */
@@ -26,7 +26,7 @@
 #define CHCMD	0x0A	/* H -- append hold space to pattern space	*/
 #define ICMD	0x0B	/* i -- insert text before current line 	*/
 #define LCMD	0x0C	/* l -- print pattern space in escaped form	*/
-#define CLCMD   0x20	/* L -- hexdump					*/
+#define CLCMD	0x20	/* L -- hexdump					*/
 #define NCMD	0x0D	/* n -- get next line into pattern space	*/
 #define CNCMD	0x0E	/* N -- append next line to pattern space	*/
 #define PCMD	0x0F	/* p -- print pattern space to output		*/
