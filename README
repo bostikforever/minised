@@ -71,6 +71,8 @@ as BSD-like in agreement with Eric S. Raymond.
 The 1.15 version fixes some Kleene star operator relates bugs and
 includes some code cleanups.
 
+The 1.16 version implemented 8-bit clean character groups.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
