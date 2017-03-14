@@ -656,7 +656,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 			continue;
 
 		case '[':	/* begin character set pattern */
-			if (ep + 17 >= expbuf + RELIMIT)
+			if (ep + 33 >= expbuf + RELIMIT)
 				die(REITL);
 			*ep++ = CCL;		/* insert class mark */
 			if ((negclass = ((c = *sp++) == '^')))
@@ -725,16 +725,16 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 				/* enter (possibly translated) char in set */
 				if (c)
-					ep[c >> 3] |= bits(c & 7);
+				  ep[((unsigned char)c) >> 3] |= bits(c & 7);
 			} while
 				((c = *sp++) != ']');
 
 			/* invert the bitmask if all-but was specified */
 			if (negclass)
-				for(classct = 0; classct < 16; classct++)
+				for(classct = 0; classct < 32; classct++)
 					ep[classct] ^= 0xFF;
 			ep[0] &= 0xFE;		/* never match ASCII 0 */ 
-			ep += 16;		/* advance ep past set mask */
+			ep += 32;		/* advance ep past set mask */
 			continue;
 
 		defchar:	/* match literal character */
