@@ -94,7 +94,7 @@ static const char* cclasses[] = {
 	"print", " -\x7e",
 	"graph", "!-\x7e",
 	"punct", "!-/:-@[-`{-\x7e",
-	NULL, NULL};
+	NULL};
  
 typedef struct			/* represent a command label */
 {
@@ -690,7 +690,7 @@ static char *recomp(char *expbuf, char redelim)	/* uses cp, bcount */
 
 					  it = cclasses;
 					  while (*it && strcmp(*it, cc))
-						it +=2;
+						it += 2;
 					  if (!*it++)
 					    die(CCERR);
 
