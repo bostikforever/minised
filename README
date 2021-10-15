@@ -5,7 +5,7 @@
 This is a smaller, cheaper, and faster SED utility. Minix uses it. GNU used
 to use it, until they built their own sed around an extended (some would
 say over-extended) regexp package and it is used for embedded tasks (for
-example by the T2 SDE - http://www.t2-project.org).
+example by the T2 SDE - https://t2sed.org).
 
 The original sed 1.0 was written in three pieces; sed.h, sedcomp.c, sedexec.c.
 Some Minix hacker ran them together into a single-file version, mnsed.c which
@@ -73,18 +73,19 @@ includes some code cleanups.
 
 The 1.16 version implemented 8-bit clean character groups.
 
+The 1.17 version added support for #n, and fixed support for multiple
+-e command line arguments.
+
 Makefile	-- how to build sed
 sed.h		-- declarations and structures
 sedcomp.c	-- sed pattern compilation
 sedexec.c	-- sed program execution
-sed.1		-- source for the man page
+minised.1		-- source for the man page
 tests/		-- a small set of sed tests
 
-For some releases the man page in the man format.
+For some releases the man page in the man format, or surf to:
 
-Surf to
-
-   http://www.exactcode.de/oss/minised/
+   https://exactcode.de/oss/minised/
    http://www.catb.org/~esr/
 
 for updates of this software. There is a sed FAQ kept at these
