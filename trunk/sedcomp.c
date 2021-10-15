@@ -32,7 +32,7 @@ sedcmd	cmds[MAXCMDS+1];	/* hold compiled commands */
 long	linenum[MAXLINES];	/* numeric-addresses table */
 
 /* miscellaneous shared variables */ 
-int	nflag;			/* -n option flag */
+short	nflag;			/* -n option flag */
 int	eargc;			/* scratch copy of argument count */
 sedcmd	*pending	= NULL;	/* next command to be executed */
 
@@ -123,8 +123,8 @@ static int	bcount	= 0;		/* # tagged patterns in current RE */
 static char	**eargv;		/* scratch copy of argument list */
 
 /* compilation flags */
-static int	eflag;			/* -e option flag */
-static int	gflag;			/* -g option flag */
+static short	eflag;			/* -e option flag */
+static short	gflag;			/* -g option flag */
 
 /* prototypes */
 static char *address(char *expbuf);
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 		switch (eargv[0][1])
 		{
 		case 'e':
-			eflag++; compile();	/* compile with e flag on */
+			eflag = 1; compile();	/* compile with e flag on */
 			eflag = 0;
 			continue;		/* get another argument */
 		case 'f':
@@ -170,10 +170,10 @@ int main(int argc, char *argv[])
 			fclose(cmdf);
 			continue;	/* go back for another argument */
 		case 'g':
-			gflag++;	/* set global flag on all s cmds */
+			gflag = 1;	/* set global flag on all s cmds */
 			continue;
 		case 'n':
-			nflag++;	/* no print except on p flag or w */
+			nflag = 1;	/* no print except on p flag or w */
 			continue;
 		default:
 			fprintf(stdout, UFLAG, eargv[0][1]);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 	if (cmdp == cmds)	/* no commands have been compiled */
 	{
 		eargv--; eargc++;
-		eflag++; compile(); eflag = 0;
+		eflag = 1; compile(); eflag = 0;
 		eargv++; eargc--;
 	}
 
@@ -220,7 +220,11 @@ static char	cmdmask[] =
 static void compile(void)
 {
 	char	ccode;
-	if (cmdline(cp = linebuf) >= 0)		/* start parsing a new line */
+	if (cmdline(cp = linebuf) < 0)		/* start parsing a new line */
+		return;
+	if (*cp == '#' && cp[1] == 'n')		/* posix #n handling */
+		nflag = 1;	/* no print except on p flag or w */
+
 	for(;;)					/* main compilation loop */
 	{
 		SKIPWS(cp);
