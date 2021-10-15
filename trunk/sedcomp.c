@@ -1,6 +1,6 @@
 /* sedcomp.c -- stream editor main and compilation phase
    Copyright (C) 1995-2003 Eric S. Raymond
-   Copyright (C) 2004-2017 Rene Rebe
+   Copyright (C) 2004-2021 Rene Rebe
 
    The stream editor compiles its command input  (from files or -e options)
 into an internal form using compile() then executes the compiled form using
@@ -769,7 +769,7 @@ static int cmdline(char	*cbuf)		/* uses eflag, eargc, cmdf */
 			while((*++cbuf = *p++))
 				if (*cbuf == '\\')
 				{
-					if ((*++cbuf = *p++) == '\0')
+					if ((*++cbuf = *p++) == '0')
 						return savep = NULL, -1;
 					else
 						continue;
