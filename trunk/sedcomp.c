@@ -115,7 +115,7 @@ static char	*poolend = pool + POOLSIZE;	/* pointer past pool end */
 
 /* compilation state */
 static FILE	*cmdf	= NULL;		/* current command source */
-static char	*cp	= linebuf;	/* compile pointer */
+static char	*cp;			/* compile pointer */
 static sedcmd	*cmdp	= cmds;		/* current compiled-cmd ptr */
 static char	*lastre	= NULL;		/* old RE pointer */
 static int	bdepth	= 0;		/* current {}-nesting level */
@@ -220,7 +220,7 @@ static char	cmdmask[] =
 static void compile(void)
 {
 	char	ccode;
-
+	if (cmdline(cp = linebuf) >= 0)		/* start parsing a new line */
 	for(;;)					/* main compilation loop */
 	{
 		SKIPWS(cp);
