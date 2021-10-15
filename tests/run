@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Copyright (C) 2004-2021 Rene Rebe
+
 verbose=1
 time=0
 if [ "$1" = -v ]; then
@@ -23,7 +25,12 @@ errors=0
 for x in *.sed; do
 	x=${x%.sed}
 	printf "Running test $x ..."
-	$1 -f $x.sed $x.in > $tmp 2>&1
+	cmd=$(< $x.sed)
+	if [ "${cmd:0:2}" = "#!" ]; then
+		eval $1 "${cmd#\#\! }" $x.in > $tmp 2>&1
+	else
+		$1 -f $x.sed $x.in > $tmp 2>&1
+	fi
 	error=$?
 
 	if [ ! -f $x.out -a $error != 0 ]; then
