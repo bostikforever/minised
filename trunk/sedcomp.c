@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 	eargv	= argv;		/* set local copy of argument list */
 	cmdp->addr1 = pool;	/* 1st addr expand will be at pool start */
 	if (eargc == 1)
-		exit(0);	/* exit immediately if no arguments */
+		return 0;	/* exit immediately if no arguments */
 
 	/* scan through the arguments, interpreting each one */
 	while ((--eargc > 0) && (**++eargv == '-'))
@@ -160,11 +160,11 @@ int main(int argc, char *argv[])
 			continue;		/* get another argument */
 		case 'f':
 			if (eargc-- <= 0)	/* barf if no -f file */
-				exit(2);
+				return 2;
 			if ((cmdf = fopen(*++eargv, "r")) == NULL)
 			{
 				fprintf(stderr, COCFI, *eargv);
-				exit(2);
+				return 2;
 			}
 			compile();	/* file is O.K., compile it */
 			fclose(cmdf);
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 		execute(NULL);	/*   execute commands from stdin only */
 	else while(--eargc>=0)	/* else execute only -e commands */
 		execute(*eargv++);
-	exit(0);		/* everything was O.K. if we got here */
+	return 0;		/* everything was O.K. if we got here */
 }
 
 #define	H	0x80	/* 128 bit, on if there's really code for command */
@@ -477,7 +477,7 @@ static int cmdcomp(char cchar)
 		if ((cmdp->fout = fopen(fname[nwfiles], "w")) == NULL)
 		{
 			fprintf(stderr, CCOFI, fname[nwfiles]);
-			exit(2);
+			return 2;
 		}
 		fout[nwfiles++] = cmdp->fout;
 		break;
