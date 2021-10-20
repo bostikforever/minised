@@ -36,7 +36,7 @@ short	nflag;			/* -n option flag */
 int	eargc;			/* scratch copy of argument count */
 sedcmd	*pending	= NULL;	/* next command to be executed */
 
-int	last_line_used = 0;	/* last line address ($) was used */
+short	last_line_used = 0;	/* last line address ($) was used */
 
 void die (const char* msg) {
 	fprintf(stderr, "sed: ");
@@ -65,8 +65,8 @@ static const char	AD2NG[]	= "only one address allowed for %s";
 static const char	TMCDS[]	= "too many commands, last was %s";
 static const char	COCFI[]	= "cannot open command-file %s";
 static const char	UFLAG[]	= "unknown flag %c";
-static const char	CCOFI[]	= "cannot create %s";
-static const char	ULABL[]	= "undefined label %s";
+static const char	CCOFI[]	= "cannot create %s\n";
+static const char	ULABL[]	= "undefined label %s\n";
 static const char	TMLBR[]	= "too many {'s";
 static const char	FRENL[]	= "first RE must be non-null";
 static const char	NSCAX[]	= "no such command as %s";
@@ -222,7 +222,8 @@ static void compile(void)
 	char	ccode;
 	if (cmdline(cp = linebuf) < 0)		/* start parsing a new line */
 		return;
-	if (*cp == '#' && cp[1] == 'n')		/* posix #n handling */
+	/* no commands have been compiled? #n handling */
+	if (cmdp == cmds && *cp == '#' && cp[1] == 'n')
 		nflag = 1;	/* no print except on p flag or w */
 
 	for(;;)					/* main compilation loop */
