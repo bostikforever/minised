@@ -9,11 +9,8 @@ PREFIX=/usr
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/share/man/man1
 
-minised: sedcomp.o sedexec.o
-	$(CC) $(LDFLAGS) sedcomp.o sedexec.o -o minised
-
-sedcomp.o: sedcomp.c sed.h
-sedexec.o: sedexec.c sed.h
+minised: sedcomp.c sedexec.c sed.h
+	dmd -betterC sedcomp.c sedexec.c -of=minised
 
 install:
 	install -d -m 755 $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)
