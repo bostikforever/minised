@@ -13,10 +13,11 @@ readout() and memcmp() are output and string-comparison utilities.
 */
 
 #include <stdlib.h>	/* exit */
-#include <stdio.h>	/* {f}puts, {f}printf, getc/putc, f{re}open, fclose */
+__import core.stdc.stdio; /* {f}puts, {f}printf, getc/putc, f{re}open, fclose */
 #include <ctype.h>	/* for isprint(), isdigit(), toascii() macros */
 #include <string.h>	/* for memcmp(3) */
-#include "sed.h"	/* command type structures & miscellaneous constants */
+__import sed;		/* command miscellaneous constants */
+#include "sed.h"	/* command type structures */
 
 /***** shared variables imported from the main ******/
 
