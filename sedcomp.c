@@ -19,8 +19,7 @@ resolves references at the end.
 __import core.stdc.stdio;		/* uses getc, fprintf, fopen, fclose */
 #include <ctype.h>		/* isdigit */
 #include <string.h>		/* strcmp */
-__import sed;			/* command name defines */
-#include "sed.h"		/* command type struct */
+__import sed;			/* command type struct and name defines */
 
 /***** public stuff ******/
 
@@ -440,10 +439,10 @@ static int cmdcomp(char cchar)
 		
 		if ((cmdp->rhs = fp) > poolend) die(TMTXT);
 		if ((fp = rhscomp(cmdp->rhs, redelim)) == BAD) die(CGMSG);
-		if (gflag) cmdp->flags.global++;
+		if (gflag) cmdp->flags.global = cmdp->flags.global + 1;
 		while (*cp == 'g' || *cp == 'p' || *cp == 'P' || isdigit(*cp))
 		{
-			IFEQ(cp, 'g') cmdp->flags.global++;
+			IFEQ(cp, 'g') cmdp->flags.global = cmdp->flags.global + 1;
 			IFEQ(cp, 'p') cmdp->flags.print = 1;
 			IFEQ(cp, 'P') cmdp->flags.print = 2;
 			if (isdigit(*cp))

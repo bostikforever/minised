@@ -5,7 +5,6 @@
 
 module sed;
 
-// import cstdio=core.stdc.stdio;
 extern(C):
 enum TRUE            = 1;
 enum FALSE           = 0;
@@ -44,30 +43,37 @@ enum CWCMD	= 0x17;	/* W -- write first line of pattern space	*/
 enum XCMD	= 0x18;	/* x -- exhange pattern and hold spaces		*/
 enum YCMD	= 0x19;	/* y -- transliterate text			*/
 
-// struct	cmd_t			/* compiled-command representation */
-// {
-// 	char	*addr1;			/* first address for command */
-// 	char	*addr2;			/* second address for command */
-// 	union U
-// 	{
-// 		char	*lhs;	/* s command lhs */
-// 		cmd_t	*link;	/* label link */
-// 	}
-//     U u;
-// 	char	command;		/* command code */
-// 	char	*rhs;			/* s command replacement string */
-// 	void	*fout;	 	/* associated output file descriptor */
-// 	struct Flags
-// 	{
-//         uint allbut:    1, /* was negation specified? */
-//              global:    1, /* was p postfix specified? */
-//              print:     2, /* was g postfix specified? */
-//              inrange:   1; /* in an address range? */
-// 	}
-//     Flags flags;
-// 	uint nth;			/* sed nth occurance */
-// }
-// alias sedcmd = cmd_t;		/* use this name for declarations */
+struct	cmd_t			/* compiled-command representation */
+{
+	char	*addr1;			/* first address for command */
+	char	*addr2;			/* second address for command */
+	private union U
+	{
+		char	*lhs;	/* s command lhs */
+		cmd_t	*link;	/* label link */
+	}
+    U u;
+	char	command;		/* command code */
+	char	*rhs;			/* s command replacement string */
+	import core.stdc.stdio;
+	FILE* fout;	 	/* associated output file descriptor */
+
+    private struct Flags
+    {
+        import std.bitmanip : bitfields;
+
+        mixin(bitfields!(
+            uint, "allbut", 1,
+            uint, "global", 1,
+            uint, "print", 2,
+            uint, "inrange", 1,
+            uint, "", 3
+			));
+    }
+    Flags flags;
+	uint nth;			/* sed nth occurance */
+}
+alias sedcmd = cmd_t;		/* use this name for declarations */
 
 enum BAD = cast(char *)(-1);	/* guaranteed not a string ptr */
 
