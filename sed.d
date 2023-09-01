@@ -53,7 +53,7 @@ struct	cmd_t			/* compiled-command representation */
 		cmd_t	*link;	/* label link */
 	}
     U u;
-	char	command;		/* command code */
+	char	command = void;		/* command code */
 	char	*rhs;			/* s command replacement string */
 	import core.stdc.stdio;
 	FILE* fout;	 	/* associated output file descriptor */
