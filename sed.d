@@ -45,7 +45,6 @@ enum YCMD	= 0x19;	/* y -- transliterate text			*/
 
 struct	cmd_t			/* compiled-command representation */
 {
-	align(1):
 	char	*addr1;			/* first address for command */
 	char	*addr2;			/* second address for command */
 	private union U
